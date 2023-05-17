@@ -1,0 +1,19 @@
+// Componant: Dropdown
+// Updated styles for bootstrap dropdown
+
+.dropdown-menu {
+	border-radius: 0;
+	box-shadow: 0 0 12px rgba(197, 197, 197, 0.48);
+	&.dropdown-menu-right {
+		left: auto;
+		right: 0;
+	}
+}
+
+.dropdown-item {
+	.fa,
+	.icon {
+		margin-right: 5px;
+		vertical-align: middle;
+	}
+}

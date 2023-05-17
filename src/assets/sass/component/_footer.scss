@@ -1,0 +1,91 @@
+/*----- Componant: Footer ----- */
+
+.app-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    background-color: #E4EDE9;
+    z-index: 1000;
+    padding: 13px 30px;
+    transition: margin-left 0.3s ease;
+    border-top: 1px solid #acd5c0;
+    .footer-inner-wrapper {
+        text-align: center;
+        position: relative;
+        width: calc(100% - 280px);
+        display: flex;
+        justify-content: center;
+        .footer-content {
+            color: $font-color-brown;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .footer-version {
+            color: $font-color-brown;
+            font-size: 0.75rem;
+            font-weight: 500;
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            text-align: center;
+        }
+    }    
+}
+
+.dark-theme {
+    .app-footer {
+        background-color: $primary-color;
+        border-top-color: $primary-color;
+        .footer-content {
+            color: $white;
+        }
+    }    
+}
+
+@media (max-width: 820px) {
+    .app-footer {
+        .footer-inner-wrapper {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+        }
+        .footer-version {
+            text-align: right !important;
+            margin: 0 !important;
+            position: relative !important;
+        }
+    }
+}
+
+@media (max-width: 511.98px) {
+    .app-footer {
+        padding: 13px 15px;
+    }
+}
+
+@media (min-width: 821px) {
+    .app-footer {
+        margin-left: $sidebar-width;
+    }
+}
+
+@media (min-width: 821px) {
+    .sidebar-mini.sidenav-toggled .app-footer {
+        margin-left: 50px;
+    }
+    .app.sidenav-toggled .app-footer {
+        margin-left: 0;
+        transition: margin-left 0.3s ease;
+        -webkit-transition: margin-left 0.3s ease;
+        -moz-transition: margin-left 0.3s ease;
+        -ms-transition: margin-left 0.3s ease;
+        -o-transition: margin-left 0.3s ease;
+    }
+    .app.sidenav-toggled .app-footer .footer-inner-wrapper {
+        width: 100%;
+    }
+}
