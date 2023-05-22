@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../assets/images/logo.svg";
 import logo_sm from "../assets/images/logo-sm.svg";
 import Lite from "../assets/images/R-360Lite.svg";
@@ -10,18 +10,40 @@ function Login() {
   const {
     rootStore: { loginStore },
   } = useStore();
-  console.log(loginStore, "PPP");
+  console.log(loginStore?.userDetails?.status, "PPP");
   const navigate = useNavigate();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isToggled, setToggled] = useState(true);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>();
+
   const toggle = () => {
     setToggled(!isToggled);
   };
   const loginHandle = async (e: { preventDefault: () => void }) => {
     console.log("!!!");
     e.preventDefault();
-    await loginStore.fetchUserToken(email, password);
+    var regEx =/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/ ;
+    const isUsernameValid = email.trim().length > 0 && regEx;
+    const isPasswordValid = password.trim().length > 0;
+
+    if (isUsernameValid && isPasswordValid) {
+      // Submit the form
+      await loginStore.fetchUserToken(email, password);
+    
+      if (loginStore?.userDetails?.status === "success") {
+        navigate("/otpPin");
+      }
+    } else {
+      setErrors({
+        email: isUsernameValid ? undefined : "Username is required",
+        password: isPasswordValid ? undefined : "Password is required",
+      });
+    }
+
     // const tokenRes = await axios.post(`https://r360-dev-services.rishabhsoft.com/api/core/login`,email,password);
     // console.log(tokenRes)
   };
@@ -51,7 +73,7 @@ function Login() {
                   <div className="input-addon">
                     <input
                       className="form-control"
-                      type="text"
+                      type="email"
                       //   value={email}
                       //   placeholder="2451"
                       //   required
@@ -66,7 +88,10 @@ function Login() {
                       <i className="icon-check"></i>
                     </div>
                   </div>
-                  {/* <!-- <div className="error-block">Error display here</div> --> */}
+
+                  {errors?.email && (
+                    <div className="error-block">{errors?.email}</div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="control-label">
