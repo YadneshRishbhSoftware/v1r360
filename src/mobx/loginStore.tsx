@@ -37,20 +37,21 @@ export class LoginStore {
       user_password: password,
     };
 
-    const tokenRes  = await axios.post("https://r360-dev-services.rishabhsoft.com/api/core/login", userdata);
-    console.log(tokenRes.data)
-    this.userDetails= tokenRes.data;
-   let  promise ={};
-    try{
-      // if(tokenRes.status === true){
-        var dataObj = tokenRes.data.data;
-        console.log("data?.user",dataObj?.user?.email)
-              const isLoggedIn = {
-                isLoggedIn: true,
-              };
-      
+    const tokenRes = await axios.post(
+      "https://r360-dev-services.rishabhsoft.com/api/core/login",
+      userdata
+    );
+    this.userDetails = tokenRes.data;
+    let promise = {};
+    try {
+      var dataObj = tokenRes.data.data;
+      localStorage.setItem("token", dataObj?.token);
+      const isLoggedIn = {
+        isLoggedIn: true,
+      };
+
       let credentials = {};
-      promise = new Promise(function(resolve, reject) {
+      promise = new Promise(function (resolve, reject) {
         const jsonResponse = new Response(JSON.stringify(isLoggedIn), {
           headers: {
             "content-type": "application/json",
@@ -79,7 +80,7 @@ export class LoginStore {
         //     },
         //   }
         // );
-        
+
         // dispatch(setUserData({ ...credentials }));
         // dispatch(setLoading(false));
         // dispatch(setHolidays(holidays));
@@ -95,17 +96,15 @@ export class LoginStore {
             NotificationManager.error("catches open time error !.!");
           });
       });
-    // }else{
-    //   console.log("ddd")
-    // }
-    }catch(e){
-       console.log(e)
+      // }else{
+      //   console.log("ddd")
+      // }
+    } catch (e) {
+      console.log(e);
     }
-    
   }
 
   get getUserDetails() {
     return this.userDetails;
   }
 }
-
