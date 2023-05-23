@@ -1,72 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { CACHE_DYNAMIC_CONTENT } from "../App";
-import { useNavigate } from "react-router-dom";
-import { Calendar, momentLocalizer } from 'react-big-calendar'
+import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css"
-const localizer = momentLocalizer(moment)
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useStore } from "../Hooks/useStore";
+import { observer } from "mobx-react";
+const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
-  const [visible, setVisible] = useState(false);
-  const [data,setDate] = useState()
-  // const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  // const [pinValue, setPinValue] = useState<string>();
-  // const navigate = useNavigate()
-  // useEffect(() => {
-  //   if ("caches" in window) {
-  //     console.log("caches calendar card ==========> ", caches);
-  //     caches.match("/credentials").then((response) => {
+  const {
+    rootStore: { calendercardStore },
+  } = useStore();
 
-  //       if (response) {
-  //         response.json().then((result) => {
-  //         //   this.props.actions.setUserData(result);
-  //         });
-  //         // caches.match("/holidays").then((holidayResponse) => {
-  //         //   if (holidayResponse) {
-  //         //     holidayResponse.json().then((result) => {
-  //         //       this.props.actions.setHolidays(result);
-  //         //     });
-  //         //   }
-  //         // });
-  //         caches.match("/isLoggedIn").then((isLoggedInresponse) => {
-  //           if (!isLoggedInresponse) {
-  //             caches.open(CACHE_DYNAMIC_CONTENT).then(function(cache) {
-  //               cache.delete("/pinValue").then(function(response) {
-  //                 navigate("/");
-  //               });
-  //             });
-  //           } else {
-  //             isLoggedInresponse.json().then((result) => {
-  //               setIsLoggedIn(true);
-  //             });
-
-  //             caches.match("/pinValue").then((pinValueresponse) => {
-  //               if (!pinValueresponse) {
-  //                 navigate("/otpPin");
-  //               } else {
-  //                 pinValueresponse.json().then((result) => {
-  //                   if (result.pinValue) {
-  //                     setPinValue(result.pinValue);
-  //                   }
-  //                 //   this.getLogsTime(this.state.date);
-  //                 });
-  //               }
-  //             });
-  //           }
-  //         });
-  //       } else {
-  //         caches.open(CACHE_DYNAMIC_CONTENT).then((cache) => {
-  //           cache.delete("/pinValue").then((response) => {
-  //             navigate("/");
-  //           });
-  //         });
-  //       }
-  //     });
-  //   }
-  // }, []);
-//   const inputhandleChange = (event, inputId) => {
-
-//   }
+  const getDate = async (e: any) => {
+    await calendercardStore.fetchcalenderCardData(
+      moment(e.start).format("DD/MMMM/YYYY")
+    );
+  };
   return (
     <>
       <body className="app">
@@ -112,14 +60,21 @@ function CalendarCard() {
                 <div className="calendar-block">
                   <div className="d-calendar">
                     <form action="#">
-                      <div id="inline_cal"  style={{ height:"70vh"}}>
-                  <Calendar
-                   localizer={localizer}
-                //    events={myEventsList}
-                //    startAccessor="start"
-                //    endAccessor="end"
-                //    style={{ height: 500 }}
-    />
+                      <div
+                        id="inline_cal"
+                        style={{ height: "70vh", cursor: "pointer" }}
+                      >
+                        <Calendar
+                          selectable
+                          localizer={localizer}
+                          views={["month"]}
+                          onSelectSlot={getDate}
+
+                          //    events={myEventsList}
+                          //    startAccessor="start"
+                          //    endAccessor="end"
+                          //    style={{ height: 500 }}
+                        />
                       </div>
                     </form>
                   </div>
@@ -141,97 +96,56 @@ function CalendarCard() {
                   </div>
 
                   <div className="booked-meal-wrapper">
-                    <div className="booked-meal-block">
-                      <div className="booked-meal-tp">
-                        <div className="booked-meal-tp-lt">
-                          <div className="task-title">
-                            Project Name: Lorem Ipsum is simply dummy text of
-                            the printing and typesetting industry
+                    {calendercardStore?.calenderDateDetails?.logTimes?.map(
+                      (data: any) => {
+                        return (
+                          <div className="booked-meal-block">
+                            <div className="booked-meal-tp">
+                              <div className="booked-meal-tp-lt">
+                                <div className="task-title">
+                                  Project Name: {data.project.name}
+                                </div>
+                                <div className="task-info">
+                                  Task: {data.task.name}
+                                </div>
+                                <div className="task-spent-time">
+                                  Time: 2 Hrs. 20mins
+                                </div>
+                                <div className="task-description">
+                                  Lorem Ipsum is simply dummy text of the
+                                  printing and typesetting industry.
+                                </div>
+                              </div>
+                              {data?.timelog_approver === null ? (
+                                <div className="booked-meal-tp-rt" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                  <button className="btn-head">
+                                    <i className="icon-edit" ></i>
+                                  </button>
+                                  <button className="btn-head">
+                                    <i className="icon-trash"></i>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="task-status booked-meal-tp-rt">
+                                  <i className="icon-check"></i>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="task-info">
-                            Task: Lorem Ipsum is simply dummy text
-                          </div>
-                          <div className="task-spent-time">
-                            Time: 2 Hrs. 20mins
-                          </div>
-                          <div className="task-description">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry.
-                          </div>
-                        </div>
-                        <div className="booked-meal-tp-rt">
-                          <button className="btn-head">
-                            <i className="icon-edit"></i>
-                          </button>
-                          <button className="btn-head">
-                            <i className="icon-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="booked-meal-block">
-                      <div className="booked-meal-tp">
-                        <div className="booked-meal-tp-lt">
-                          <div className="task-title">
-                            Project Name: Lorem Ipsum is simply dummy text of
-                            the printing and typesetting industry
-                          </div>
-                          <div className="task-info">
-                            Task: Lorem Ipsum is simply dummy text
-                          </div>
-                          <div className="task-spent-time">
-                            Time: 2 Hrs. 20mins
-                          </div>
-                          <div className="task-description">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry.
-                          </div>
-                        </div>
-                        <div className="task-status booked-meal-tp-rt">
-                          <i className="icon-check"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="booked-meal-block">
-                      <div className="booked-meal-tp">
-                        <div className="booked-meal-tp-lt">
-                          <div className="task-title">
-                            Project Name: Lorem Ipsum is simply dummy text of
-                            the printing and typesetting industry
-                          </div>
-                          <div className="task-info">
-                            Task: Lorem Ipsum is simply dummy text
-                          </div>
-                          <div className="task-spent-time">
-                            Time: 2 Hrs. 20mins
-                          </div>
-                          <div className="task-description">
-                            Lorem Ipsum is simply dummy text of the printing and
-                            typesetting industry.
-                          </div>
-                        </div>
-                        <div className="booked-meal-tp-rt">
-                          <button className="btn-head">
-                            <i className="icon-edit"></i>
-                          </button>
-                          <button className="btn-head">
-                            <i className="icon-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                        );
+                      }
+                    )}
                   </div>
                 </div>
               </div>
               <div className="m-btn">
-                {/* <button className="btn btn-primary m-auto" data-toggle="modal" data-target="#bookMealModal" onClick={()=>setVisible( !visible ? true : false)}>Quick Add Task</button> */}
                 <button
                   type="button"
                   className="btn btn-primary m-auto"
                   data-bs-toggle="modal"
                   data-bs-target="#exampleModal"
                 >
-                  Launch demo modal
+                  Add Task
                 </button>
               </div>
             </div>
@@ -239,97 +153,153 @@ function CalendarCard() {
         </main>
         {/* <!-- Start Book meal Modal --> */}
 
-        {/* <div className="modal fade" id="#bookMealModal" tabIndex={-1} role="dialog" aria-labelledby="myModalLabel2"> */}
-        {/* <div className="modal-dialog modal-dialog-centered" tabIndex={-1} role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <div className="back-btn-block justify-content-between">
-                                    <div className="d-flex align-items-center justify-content-start">
-                                        <button type="button" className="close i-prev" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><i className="icon-prev" ></i></span></button>
-                                        <h4 className="modal-title" id="myModalLabel2">View / Update Time</h4>
-                                    </div>
-                                    <div className="d-flex align-items-center justify-content-end">
-                                        <button type="button" className="close i-close ml-15" data-dismiss="modal" aria-label="Close"  onClick={()=> setVisible(false)}>
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="modal-body">
-                            
-                                <div className="form-group">
-                                    <label>Project</label>
-                                    <select className="form-control" id="exampleSelect1">
-                                        <option>Select Project</option>
-                                        <option>Option 2 </option>
-                                        <option>Option 3</option>
-                                        <option>Option 4</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Task</label>
-                                    <select className="form-control" id="exampleSelect1">
-                                        <option>Select Task</option>
-                                        <option>Option 2 </option>
-                                        <option>Option 3</option>
-                                        <option>Option 4</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label className="control-label">Select Days</label>
-                                    <div className="input-group">
-                                        <input type="text" className="form-control" placeholder="01-01-2023, 02-01-2023, 03-01-2023......" id="demoDate" />
-                                        <div className="input-group-append">
-                                            <span className="input-group-text bg-transparent" id="">
-                                                <i className="icon-calendar"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-group mb-0">
-                                    <label>Enter Time</label>
-                                    <div className="row">
-                                        <div className="col-lg-6">
-                                            <div className="form-group">
-                                                <input type="text" className="form-control" placeholder="HH" />
-                                            </div>
-                                        </div>
-                                        <div className="col-lg-6">
-                                            <div className="form-group">
-                                                <input type="text" className="form-control" placeholder="MM" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-group custom-radio">
-                                    <label>Select Leave Type</label>
-                                    <div className="radio-col">
-                                        <div className="radio-block">
-                                            <input type="radio" id="test1" name="radio-group" checked />
-                                            <label htmlFor="test1" className="mr-0">Full Day</label>
-                                        </div>
-                                        <div className="radio-block">
-                                            <input type="radio" id="test2" name="radio-group" checked />
-                                            <label htmlFor="test2" className="mr-0">Half Day</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label>Your Comments</label>
-                                    <textarea className="form-control" id="" rows={5}></textarea>
-                                </div>
-                                <div className="form-group mb-0 mt-3">
-                                    <label className="custom-checkbox mb-0"><span className="checkbox__title">Remember Me</span>
-                                        <input className="checkbox__input" type="checkbox" /><span className="checkbox__checkmark"></span>
-                                    </label>
-                                </div> 
-                            </div>
-                            <div className="modal-footer">
-                                <button className="btn btn-primary w-100 m-0" type="submit">Submit</button>
-                            </div>
-                        </div>
-
-                    </div> */}
-        {/* </div> */}
+        <div
+          className="modal fade"
+          id="exampleModal"
+          tabIndex={-1}
+          role="dialog"
+          aria-labelledby="myModalLabel2"
+        >
+          <div
+            className="modal-dialog modal-dialog-centered"
+            tabIndex={-1}
+            role="document"
+          >
+            <div className="modal-content">
+              <div className="modal-header">
+                <div className="back-btn-block justify-content-between">
+                  <div className="d-flex align-items-center justify-content-start">
+                    <button
+                      type="button"
+                      className="close i-prev"
+                      data-dismiss="modal"
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">
+                        <i className="icon-prev"></i>
+                      </span>
+                    </button>
+                    <h4 className="modal-title" id="exampleModal">
+                      View / Update Time
+                    </h4>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-end">
+                    <button
+                      type="button"
+                      className="close i-close ml-15"
+                      data-dismiss="modal"
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Project</label>
+                  <select className="form-control" id="exampleSelect1">
+                    <option>Select Project</option>
+                    <option>Option 2 </option>
+                    <option>Option 3</option>
+                    <option>Option 4</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Task</label>
+                  <select className="form-control" id="exampleSelect1">
+                    <option>Select Task</option>
+                    <option>Option 2 </option>
+                    <option>Option 3</option>
+                    <option>Option 4</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="control-label">Select Days</label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="01-01-2023, 02-01-2023, 03-01-2023......"
+                      id="demoDate"
+                    />
+                    <div className="input-group-append">
+                      <span className="input-group-text bg-transparent" id="">
+                        <i className="icon-calendar"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group mb-0">
+                  <label>Enter Time</label>
+                  <div className="row">
+                    <div className="col-lg-6">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="HH"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-6">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="MM"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group custom-radio">
+                  <label>Select Leave Type</label>
+                  <div className="radio-col">
+                    <div className="radio-block">
+                      <input
+                        type="radio"
+                        id="test1"
+                        name="radio-group"
+                        checked
+                      />
+                      <label htmlFor="test1" className="mr-0">
+                        Full Day
+                      </label>
+                    </div>
+                    <div className="radio-block">
+                      <input
+                        type="radio"
+                        id="test2"
+                        name="radio-group"
+                        checked
+                      />
+                      <label htmlFor="test2" className="mr-0">
+                        Half Day
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Your Comments</label>
+                  <textarea className="form-control" id="" rows={5}></textarea>
+                </div>
+                <div className="form-group mb-0 mt-3">
+                  <label className="custom-checkbox mb-0">
+                    <span className="checkbox__title">Remember Me</span>
+                    <input className="checkbox__input" type="checkbox" />
+                    <span className="checkbox__checkmark"></span>
+                  </label>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-primary w-100 m-0" type="submit">
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div
           className="modal left fade"
@@ -967,7 +937,7 @@ function CalendarCard() {
           </div>
         </div>
 
-        <div
+        {/* <div
           className="modal fade"
           id="exampleModal"
           tabIndex={-1}
@@ -1053,7 +1023,7 @@ function CalendarCard() {
                           step="1"
                           maxLength={2}
                           id="hour"
-                        //   onChange={inputhandleChange("hour")}
+                          //   onChange={inputhandleChange("hour")}
                         />
                       </div>
                     </div>
@@ -1114,10 +1084,9 @@ function CalendarCard() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </body>
     </>
   );
 }
-
-export default CalendarCard;
+export default observer(CalendarCard);
