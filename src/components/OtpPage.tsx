@@ -1,21 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {FC, useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { CACHE_DYNAMIC_CONTENT } from "../App";
-function OtpPage() {
 
-  const [setpin, setSetpin] = useState({
-    four: "",
-    three: "",
-    two: "",
-    one: "",
-  });
-  const one = React.useRef<HTMLInputElement>();
-  const two = React.useRef<HTMLInputElement>();
-  const three = React.useRef<HTMLInputElement>();
-  const four = React.useRef<HTMLInputElement>();
-  const done = React.useRef<HTMLInputElement>();
+  interface Props {}
+  let currentOTPindex:number=0;
+  const OtpPage: FC<Props> = (props): JSX.Element => {
+  const [otp, setOtp] = useState<string[]>(new Array(4).fill(""));
+
+  const [activeOTPIndex, setactiveOTPIndex] = useState<number>(0);
+  const [enableDoneButton, setEnableDoneButton] = useState(false);
+  const inputRef= useRef<HTMLInputElement>(null)
   useEffect(() => {
     var pinValue;
     if ("caches" in window) {
@@ -36,53 +32,56 @@ function OtpPage() {
           caches.match("/isLoggedIn").then((response) => {
             if (!response) {
               navigate("/");
-            }
+            } 
+            else {
+                 navigate("/otpPin");
+               }
           });
-        } else {
-          navigate("/");
-        }
+        } 
       });
     }
   }, []);
-  const [enableDoneButton, setEnableDoneButton] = useState(true);
+
+  
   const navigate = useNavigate();
-  const inputChangedHandler = (event: React.ChangeEvent<HTMLInputElement>, inputId) => {
-    const _setpin = { ...setpin };
-    _setpin[inputId] = event.target.value;
-    setSetpin(_setpin);
-    if (_setpin[inputId].length >= 1) {
-      switch (inputId) {
-        case "four":
-            setEnableDoneButton(false);
-          setSetpin({ ..._setpin, three: "" });
-          break;
-        case "three":
-            setEnableDoneButton(false);
-          setSetpin({ ..._setpin, two: "" });
-          break;
-        case "two":
-            setEnableDoneButton(false);
-          setSetpin({ ..._setpin, one: "" });
-          break;
-        case "one":
-            setEnableDoneButton(true);
-          break;
-        default:
-          return;
+ 
+    const inputChangedHandler = (e: React.ChangeEvent<HTMLInputElement>): void => {
+      const value = e.target.value;
+      const newOTP: string[] = [...otp];
+
+      newOTP[currentOTPindex] = value.substring(value.length - 1);
+      if (!value) {
+        setactiveOTPIndex(currentOTPindex - 1)
+      } else {
+        setactiveOTPIndex(currentOTPindex + 1)
       }
-    }
-  };
+      // const val= value.substring(value.length-1)   
+      // console.log(val)
+      setOtp(newOTP);
+      //console.log(currentOTPindex, activeOTPIndex)    
+      if(!newOTP[3]){
+        setEnableDoneButton(false)
+      }else{
+        setEnableDoneButton(true)
+      }
+    };    
+    
+
   const setPinClick = (e) => {
     e.preventDefault()
-    const pinValue = setpin.four + setpin.three + setpin.two + setpin.one;
+ 
+    const pinValue = otp[3] + otp[2] + otp[1] + otp[0];
     console.log(pinValue,"pinValue")
     if ("caches" in window) {
       caches.match("/pinValue").then((response) => {
         if (response) {
           response.json().then(function updateFromCache(result) {
             if (result.pinValue !== pinValue) {
-                console.log("result",result)
+              console.log("result",result)
               toast.error("Please enter valid pin");
+              setTimeout(()=>{
+                setOtp(new Array(4).fill(""))
+              }, 6000)
               return;
             } else {
               navigate("/calender");
@@ -107,6 +106,23 @@ function OtpPage() {
       });
     }
   };
+
+    const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+      const val = e.key
+      console.log(e.key)
+      currentOTPindex = index
+      if (val === "Backspace") {
+        setactiveOTPIndex(currentOTPindex - 1)
+      }
+
+      if (val === "Backspace") {
+        setactiveOTPIndex(currentOTPindex +1)
+      }
+    }
+
+    useEffect(() => {
+      inputRef.current?.focus()
+    }, [activeOTPIndex])
 
   return (
     <>
@@ -134,40 +150,23 @@ function OtpPage() {
                   We have send the Verification code to your mobile number.
                 </p>
                 <div className="form-group">
-                  <label className="control-label">Enter here</label>
-                  <div className="otp-block">
-                    <input
-                      className="form-control"
-                      maxLength={1}
-                      type="text"
-                      placeholder=""
-                      onChange={(e) => inputChangedHandler(e, "four")}
-                      // ref={four}
-                    />
-                    <input
-                      className="form-control"
-                      maxLength={1}
-                      type="text"
-                      placeholder=""
-                      onChange={(e) => inputChangedHandler(e, "three")}
-                      // ref={three}
-                    />
-                    <input
-                      className="form-control"
-                      maxLength={1}
-                      type="text"
-                      placeholder=""
-                      onChange={(e) => inputChangedHandler(e, "two")}
-                      // ref={two}
-                    />
-                    <input
-                      className="form-control"
-                      maxLength={1}
-                      type="text"
-                      placeholder=""
-                      onChange={(e) => inputChangedHandler(e, "one")}
-                      // ref={one}
-                    />
+                <label className="control-label">Enter here</label>
+                <div className="otp-block"  >
+                  { otp.map((_, index) => {
+                  return(
+                    <div style={{margin:"8px"}} key={index}>
+                      <input 
+                       className="form-control"
+                       value={otp[index]}
+                       ref={index === activeOTPIndex ? inputRef : null}
+                       onChange={inputChangedHandler}
+                       onKeyDown={(e) => handleOnKeyDown(e, index)}
+                       type="text"
+
+                     />
+                     </div>
+                  )  
+                  })  }
                   </div>
                   {/* <!-- <div className="error-block">Error display here</div> --> */}
                 </div>
