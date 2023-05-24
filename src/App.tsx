@@ -18,14 +18,14 @@ function App() {
             // self.setState({
             //   lendingComponent: 'PinLogin'
             // })
-            navigate("/otpPin")
+            // navigate("/otpPin")
           });
         }
         else {     //first time user    
           // self.setState({
           //   lendingComponent: 'Login'
           // })
-          navigate("/")
+          // navigate("/")
         }
       });
     } else {

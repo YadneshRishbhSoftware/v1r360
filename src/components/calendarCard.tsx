@@ -3,9 +3,12 @@ import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
+  const navigate = useNavigate()
   const {
     rootStore: { calendercardStore },
   } = useStore();
@@ -15,6 +18,14 @@ function CalendarCard() {
       moment(e.start).format("DD/MMMM/YYYY")
     );
   };
+  useEffect(()=>{
+      if(localStorage.getItem("token")){
+        console.log("TTTTT")
+        navigate("/calender")
+      }else{
+        navigate("/")
+      }
+  },[])
   return (
     <>
       <body className="app">
@@ -97,9 +108,9 @@ function CalendarCard() {
 
                   <div className="booked-meal-wrapper">
                     {calendercardStore?.calenderDateDetails?.logTimes?.map(
-                      (data: any) => {
+                      (data: any , id) => {
                         return (
-                          <div className="booked-meal-block">
+                          <div className="booked-meal-block" key={id}>
                             <div className="booked-meal-tp">
                               <div className="booked-meal-tp-lt">
                                 <div className="task-title">
@@ -116,7 +127,7 @@ function CalendarCard() {
                                   printing and typesetting industry.
                                 </div>
                               </div>
-                              {data?.timelog_approver === null ? (
+                              {data?.editable ===  true ? (
                                 <div className="booked-meal-tp-rt" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                   <button className="btn-head">
                                     <i className="icon-edit" ></i>

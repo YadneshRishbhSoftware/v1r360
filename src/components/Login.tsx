@@ -24,10 +24,11 @@ function Login() {
   const toggle = () => {
     setToggled(!isToggled);
   };
+  var regEx =/^[\w-\.]+@(rishabhsoft.com)$/ ;
   const loginHandle = async (e: { preventDefault: () => void }) => {
     console.log("!!!");
     e.preventDefault();
-    var regEx =/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/ ;
+ 
     const isUsernameValid = email.trim().length > 0 && regEx;
     const isPasswordValid = password.trim().length > 0;
 
@@ -85,9 +86,12 @@ function Login() {
                     <div className="icon-before">
                       <i className="icon-user"></i>
                     </div>
+                    {email.match(regEx) ?
                     <div className="icon-after icon-green">
                       <i className="icon-check"></i>
-                    </div>
+                    </div> :<div className="icon-after icon-red">
+                      <i className="icon-check"></i>
+                    </div> }
                   </div>
 
                   {errors?.email && (
@@ -99,23 +103,19 @@ function Login() {
                     Password<span className="extric">*</span>
                   </label>
                   <div className="input-addon">
-                    {isToggled ? (
                       <input
                         id="password-field"
                         className="form-control"
-                        type="password"
+                        // type="password"
                         //   value={password}
                         //   value="Password"
                         //   id="password"
                         //   defaultValue={password}
                         //   required
-                        //   type={passwordShown ? "text" : "password"}
+                          type={isToggled! ? "text" : "password"}
                         //   name="password"
                         onChange={(e: any) => setPassword(e.target.value)}
                       />
-                    ) : (
-                      ""
-                    )}
                     <div className="icon-before">
                       <i className="icon-lock"></i>
                     </div>
