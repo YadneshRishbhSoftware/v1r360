@@ -1,6 +1,6 @@
 import axios from "axios";
 import { action, computed, makeObservable, observable } from "mobx";
-import { IRootStore } from "./rootStore";
+import { IRootStore } from "./RootStore";
 import { InsertLogtime } from "../helperInterface/InsertLoginterface";
 
 export class InsertlogTime {

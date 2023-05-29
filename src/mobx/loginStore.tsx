@@ -1,6 +1,6 @@
 import axios from "axios";
 import { action, computed, makeObservable, observable, toJS } from "mobx";
-import { IRootStore } from "./rootStore";
+import { IRootStore } from "./RootStore";
 import { NotificationManager } from "react-notifications";
 import { IUserDetail } from "../helperInterface/IUserDetail";
 import { CACHE_DYNAMIC_CONTENT } from "../App";
