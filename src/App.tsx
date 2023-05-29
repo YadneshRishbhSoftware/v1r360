@@ -22,16 +22,10 @@ function App() {
           });
         }
         else {     //first time user    
-          // self.setState({
-          //   lendingComponent: 'Login'
-          // })
-          // navigate("/")
+          navigate("/")
         }
       });
     } else {
-      // self.setState({
-      //   lendingComponent: 'Login'
-      // })
       navigate("/")
     }
   }, []); 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { action, computed, makeObservable, observable } from "mobx";
-import { IRootStore } from "./RootStore";
+import { IRootStore } from "./rootStore";
 import { Root } from "../helperInterface/calendercardInterface";
 
 export interface DateSelectInterface {
@@ -10,22 +10,6 @@ export interface DateSelectInterface {
     onSelect: (date: Date) => void;
     token:String
   }
-
-  // export interface Calendarcard {
-  //   log_id: Number;
-  //   project : {
-  //     id: Number;
-  //     name: string;
-  //   };
-  //   task : {
-  //     id: Number;
-  //     name: string;
-  //   };
-  //   task_id: number;
-  //   project_id: number;
-  //   logTimeTotal: number
-  //   logTimeTotalLeave: number
-  // }
 
 export class CalendarCardstore {
   rootStore: IRootStore;
@@ -43,7 +27,6 @@ export class CalendarCardstore {
         date:date,
     }
     const token :any = localStorage.getItem("token");
-    console.log(token,"local")
     const getLogsTime = await axios.post(
       `https://r360-dev-services.rishabhsoft.com/api/lite/MyLogTime`,getDatedata,
       { headers: {"Authorization" : `Bearer ${token}`} }

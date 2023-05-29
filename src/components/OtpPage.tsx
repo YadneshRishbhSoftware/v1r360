@@ -161,8 +161,7 @@ import { CACHE_DYNAMIC_CONTENT } from "../App";
                        ref={index === activeOTPIndex ? inputRef : null}
                        onChange={inputChangedHandler}
                        onKeyDown={(e) => handleOnKeyDown(e, index)}
-                       type="text"
-
+                       type="password"
                      />
                      </div>
                   )  

@@ -1,44 +1,106 @@
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
-import { useEffect } from "react";
+import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [selectedDate, setSelactedDate] = useState<any>(new Date());
+  const [projectId, setProjectId] = useState<number | undefined>(0);
+  const [taskArr, setTaskArr] = useState<any>([]);
+  const [taskId, setTaskId] = useState<string>();
+  const [timeHours, setTimehours] = useState<string>();
+  const [timeMinute, setTimeminute] = useState<number | undefined>(0);
+  const [isLeave, setisLeave] = useState<boolean>(false);
+  const [descriptionComment, setDescriptionComment] = useState<
+    string | undefined
+  >("");
   const {
-    rootStore: { calendercardStore },
+    rootStore: { calendercardStore, userAddTaskStore, insertLogTime },
   } = useStore();
-
+  console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
   const getDate = async (e: any) => {
     await calendercardStore.fetchcalenderCardData(
       moment(e.start).format("DD/MMMM/YYYY")
     );
+    setSelactedDate(e.start);
   };
-  useEffect(()=>{
-      if(localStorage.getItem("token")){
-        console.log("TTTTT")
-        navigate("/calender")
-      }else{
-        navigate("/")
-      }
-  },[])
+
+  const userAddTask = () => {
+    userAddTaskStore.fetchcalenderCardData(
+      moment(selectedDate).format("DD/MMMM/YYYY")
+    );
+  };
+  useEffect(() => {
+    console.debug("adhfd");
+    const tempArr = userAddTaskStore?.getAddTasklist?.filter((item: any) => {
+      return item.project_id === Number(projectId);
+    });
+    setTaskArr(
+      Object.values(tempArr?.[0] ? tempArr?.[0].project_task?.[0] : [])
+    );
+  }, [projectId]);
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/calender");
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  const setHours = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTimehours(e.target.value);
+  };
+  const gettaskID = (e) => {
+    setTaskId(e.target.value);
+    if (e.target.value === ("21395" || "18962")) {
+      setisLeave(true);
+    } else {
+      setisLeave(false);
+    }
+  };
+  const submitInsertLogTimeForm = () => {
+    if (!projectId) {
+      toast.error("please entert project Name");
+    } else if (!taskId) {
+      toast.error("please entert Task Name");
+    } else if (!isLeave && !timeHours) {
+      toast.error("please enter time");
+    } else if (!descriptionComment) {
+      toast.error("please enter description");
+    } else if (timeHours && timeHours >= "16") {
+      toast.error("Pleasr enter hours less than 16");
+    }
+    insertLogTime?.fetchInsertData(
+      moment(selectedDate).format("DD/MMMM/YYYY"),
+      projectId,
+      taskId,
+      timeHours,
+      descriptionComment
+    );
+  };
   return (
     <>
       <body className="app">
+        <ToastContainer />
         <main>
           <header>
             <div className="header">
               <div className="header-nav">
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   aria-label="Settings"
                   className="btn-head"
                   data-toggle="modal"
                   data-target="#navModal"
+                  onClick={() => localStorage.clear()}
                 >
                   <i className="icon-setting"></i>
                 </a>
@@ -108,7 +170,7 @@ function CalendarCard() {
 
                   <div className="booked-meal-wrapper">
                     {calendercardStore?.calenderDateDetails?.logTimes?.map(
-                      (data: any , id) => {
+                      (data: any, id) => {
                         return (
                           <div className="booked-meal-block" key={id}>
                             <div className="booked-meal-tp">
@@ -122,15 +184,16 @@ function CalendarCard() {
                                 <div className="task-spent-time">
                                   Time: 2 Hrs. 20mins
                                 </div>
-                                <div className="task-description">
-                                  Lorem Ipsum is simply dummy text of the
-                                  printing and typesetting industry.
-                                </div>
+                                <div className="task-description"></div>
                               </div>
-                              {data?.editable ===  true ? (
-                                <div className="booked-meal-tp-rt" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                              {data?.editable === true ? (
+                                <div
+                                  className="booked-meal-tp-rt"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#exampleModal"
+                                >
                                   <button className="btn-head">
-                                    <i className="icon-edit" ></i>
+                                    <i className="icon-edit"></i>
                                   </button>
                                   <button className="btn-head">
                                     <i className="icon-trash"></i>
@@ -155,6 +218,7 @@ function CalendarCard() {
                   className="btn btn-primary m-auto"
                   data-bs-toggle="modal"
                   data-bs-target="#exampleModal"
+                  onClick={userAddTask}
                 >
                   Add Task
                 </button>
@@ -180,16 +244,13 @@ function CalendarCard() {
               <div className="modal-header">
                 <div className="back-btn-block justify-content-between">
                   <div className="d-flex align-items-center justify-content-start">
-                    <button
+                    {/* <button
                       type="button"
                       className="close i-prev"
-                      data-dismiss="modal"
+                      data-bs-dismiss="modal"
                       aria-label="Close"
                     >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
+                    </button> */}
                     <h4 className="modal-title" id="exampleModal">
                       View / Update Time
                     </h4>
@@ -209,102 +270,167 @@ function CalendarCard() {
               <div className="modal-body">
                 <div className="form-group">
                   <label>Project</label>
-                  <select className="form-control" id="exampleSelect1">
+                  <select
+                    className="form-control"
+                    id="exampleSelect1"
+                    value={userAddTaskStore?.getAddTasklist?.project_id}
+                    onChange={(e: any) => setProjectId(e.target.value)}
+                  >
                     <option>Select Project</option>
-                    <option>Option 2 </option>
-                    <option>Option 3</option>
-                    <option>Option 4</option>
+                    {userAddTaskStore?.getAddTasklist?.map((option: any) => (
+                      <option
+                        key={option?.project_id}
+                        value={option?.project_id}
+                      >
+                        {option?.project_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Task</label>
-                  <select className="form-control" id="exampleSelect1">
+                  <label>Task </label>
+                  <select
+                    className="form-control"
+                    id="exampleSelect1"
+                    onChange={gettaskID}
+                    disabled={!projectId ? true : false}
+                  >
                     <option>Select Task</option>
-                    <option>Option 2 </option>
-                    <option>Option 3</option>
-                    <option>Option 4</option>
+                    {taskArr?.map(
+                      (option: any) => (
+                        console.log("option", option),
+                        (
+                          <option value={option?.task_id}>
+                            {option?.task_name}
+                          </option>
+                        )
+                      )
+                    )}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label className="control-label">Select Days</label>
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="01-01-2023, 02-01-2023, 03-01-2023......"
-                      id="demoDate"
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text bg-transparent" id="">
-                        <i className="icon-calendar"></i>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group mb-0">
+                {/* <div className="form-group mb-0">
                   <label>Enter Time</label>
                   <div className="row">
                     <div className="col-lg-6">
                       <div className="form-group">
                         <input
-                          type="text"
+                          disabled={!projectId ? true : false}
                           className="form-control"
                           placeholder="HH"
+                          type="number"
+                          min={0}
+                          step="1"
+                          max={16}
+                          maxLength={2}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setTimehours(Number(e.target.value))
+                          }
                         />
                       </div>
                     </div>
                     <div className="col-lg-6">
                       <div className="form-group">
                         <input
-                          type="text"
+                          disabled={!projectId ? true : false}
+                          type="number"
                           className="form-control"
                           placeholder="MM"
+                          min={0}
+                          // step="1"
+                          max={59}
+                          maxLength={2}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setTimeminute(Number(e.target.value))
+                          }
                         />
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="form-group custom-radio">
-                  <label>Select Leave Type</label>
-                  <div className="radio-col">
-                    <div className="radio-block">
-                      <input
-                        type="radio"
-                        id="test1"
-                        name="radio-group"
-                        checked
-                      />
-                      <label htmlFor="test1" className="mr-0">
-                        Full Day
-                      </label>
-                    </div>
-                    <div className="radio-block">
-                      <input
-                        type="radio"
-                        id="test2"
-                        name="radio-group"
-                        checked
-                      />
-                      <label htmlFor="test2" className="mr-0">
-                        Half Day
-                      </label>
+                </div> */}
+                {isLeave ? (
+                  <div className="form-group custom-radio">
+                    <label>Select Leave Type</label>
+                    <div className="radio-col">
+                      <div className="radio-block">
+                        <input
+                          type="radio"
+                          id="test1"
+                          name="radio-group"
+                          checked
+                        />
+                        <label htmlFor="test1" className="mr-0">
+                          Full Day
+                        </label>
+                      </div>
+                      <div className="radio-block">
+                        <input
+                          type="radio"
+                          id="test2"
+                          name="radio-group"
+                          checked
+                        />
+                        <label htmlFor="test2" className="mr-0">
+                          Half Day
+                        </label>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="form-group mb-0">
+                    <label>Enter Time</label>
+                    <div className="row">
+                      <div className="col-lg-6">
+                        <div className="form-group">
+                          <input
+                            disabled={!projectId ? true : false}
+                            className="form-control"
+                            placeholder="HH"
+                            type="number"
+                            min={0}
+                            step="1"
+                            max="16"
+                            maxLength={2}
+                            onChange={setHours}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-lg-6">
+                        <div className="form-group">
+                          <input
+                            disabled={!projectId ? true : false}
+                            type="number"
+                            className="form-control"
+                            placeholder="MM"
+                            min={0}
+                            // step="1"
+                            max={59}
+                            maxLength={2}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              setTimeminute(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="form-group">
                   <label>Your Comments</label>
-                  <textarea className="form-control" id="" rows={5}></textarea>
-                </div>
-                <div className="form-group mb-0 mt-3">
-                  <label className="custom-checkbox mb-0">
-                    <span className="checkbox__title">Remember Me</span>
-                    <input className="checkbox__input" type="checkbox" />
-                    <span className="checkbox__checkmark"></span>
-                  </label>
+                  <textarea
+                    disabled={!projectId ? true : false}
+                    className="form-control"
+                    id=""
+                    rows={5}
+                    onChange={(e) => setDescriptionComment(e.target.value)}
+                  ></textarea>
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-primary w-100 m-0" type="submit">
+                <button
+                  className="btn btn-primary w-100 m-0"
+                  type="submit"
+                  onClick={submitInsertLogTimeForm}
+                >
                   Submit
                 </button>
               </div>

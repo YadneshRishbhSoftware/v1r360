@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import logo from "../assets/images/logo.svg";
 import logo_sm from "../assets/images/logo-sm.svg";
 import Lite from "../assets/images/R-360Lite.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
-import axios from "axios";
 
 function Login() {
   const {
@@ -15,7 +14,7 @@ function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isToggled, setToggled] = useState(true);
+  const [isToggled, setToggled] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -24,18 +23,18 @@ function Login() {
   const toggle = () => {
     setToggled(!isToggled);
   };
-  var regEx =/^[\w-\.]+@(rishabhsoft.com)$/ ;
+  var regEx = /^[\w-\.]+@(rishabhsoft.com)$/;
   const loginHandle = async (e: { preventDefault: () => void }) => {
     console.log("!!!");
     e.preventDefault();
- 
+
     const isUsernameValid = email.trim().length > 0 && regEx;
     const isPasswordValid = password.trim().length > 0;
 
     if (isUsernameValid && isPasswordValid) {
       // Submit the form
       await loginStore.fetchUserToken(email, password);
-    
+
       if (loginStore?.userDetails?.status === "success") {
         navigate("/otpPin");
       }
@@ -45,9 +44,6 @@ function Login() {
         password: isPasswordValid ? undefined : "Password is required",
       });
     }
-
-    // const tokenRes = await axios.post(`https://r360-dev-services.rishabhsoft.com/api/core/login`,email,password);
-    // console.log(tokenRes)
   };
 
   return (
@@ -86,12 +82,15 @@ function Login() {
                     <div className="icon-before">
                       <i className="icon-user"></i>
                     </div>
-                    {email.match(regEx) ?
-                    <div className="icon-after icon-green">
-                      <i className="icon-check"></i>
-                    </div> :<div className="icon-after icon-red">
-                      <i className="icon-check"></i>
-                    </div> }
+                    {email.match(regEx) ? (
+                      <div className="icon-after icon-green">
+                        <i className="icon-check"></i>
+                      </div>
+                    ) : (
+                      <div className="icon-after icon-red">
+                        <i className="icon-check"></i>
+                      </div>
+                    )}
                   </div>
 
                   {errors?.email && (
@@ -103,19 +102,13 @@ function Login() {
                     Password<span className="extric">*</span>
                   </label>
                   <div className="input-addon">
-                      <input
-                        id="password-field"
-                        className="form-control"
-                        // type="password"
-                        //   value={password}
-                        //   value="Password"
-                        //   id="password"
-                        //   defaultValue={password}
-                        //   required
-                          type={isToggled! ? "text" : "password"}
-                        //   name="password"
-                        onChange={(e: any) => setPassword(e.target.value)}
-                      />
+                    <input
+                      id="password-field"
+                      className="form-control"
+                      type={isToggled! ? "text" : "password"}
+                      //   name="password"
+                      onChange={(e: any) => setPassword(e.target.value)}
+                    />
                     <div className="icon-before">
                       <i className="icon-lock"></i>
                     </div>
@@ -151,19 +144,6 @@ function Login() {
             </div>
           </div>
         </section>
-
-        {/* <script>
-                    $(".toggle-password").click(function() {
-                
-                $(this).toggleClass("icon-eye-close icon-eye-open");
-                var input = $($(this).attr("toggle"));
-                if (input.attr("type") == "password") {
-                    input.attr("type", "text");
-                } else {
-                    input.attr("type", "password");
-                }
-                });
-                    </script> */}
       </body>
     </>
   );

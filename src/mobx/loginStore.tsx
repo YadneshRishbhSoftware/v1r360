@@ -1,10 +1,7 @@
 import axios from "axios";
 import { action, computed, makeObservable, observable, toJS } from "mobx";
-import { IRootStore } from "./RootStore";
+import { IRootStore } from "./rootStore";
 import { NotificationManager } from "react-notifications";
-// import { postFunction } from "../../components/common/AxiosInstance";
-// import SecureLS from "secure-ls";
-// import { Permissions } from "../../constants/PermissionConstant";
 import { IUserDetail } from "../helperInterface/IUserDetail";
 import { CACHE_DYNAMIC_CONTENT } from "../App";
 export interface Name {
@@ -12,7 +9,7 @@ export interface Name {
   lastname: string;
 }
 export interface Token {
-  token :string
+  token: string;
 }
 
 export class LoginStore {
@@ -31,7 +28,10 @@ export class LoginStore {
     this.userDetails = null;
   }
 
-  async fetchUserToken(userName: string | undefined = undefined, password: string | undefined = undefined) {
+  async fetchUserToken(
+    userName: string | undefined = undefined,
+    password: string | undefined = undefined
+  ) {
     const userdata = {
       user_name: userName,
       user_password: password,
