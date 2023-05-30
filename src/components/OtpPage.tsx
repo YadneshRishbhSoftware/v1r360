@@ -1,87 +1,86 @@
-import React, {FC, useEffect, useRef, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { FC, useEffect, useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { CACHE_DYNAMIC_CONTENT } from "../App";
 
-  interface Props {}
-  let currentOTPindex:number=0;
-  const OtpPage: FC<Props> = (props): JSX.Element => {
+interface Props {}
+let currentOTPindex: number = 0;
+const OtpPage: FC<Props> = (props): JSX.Element => {
   const [otp, setOtp] = useState<string[]>(new Array(4).fill(""));
 
   const [activeOTPIndex, setactiveOTPIndex] = useState<number>(0);
   const [enableDoneButton, setEnableDoneButton] = useState(false);
-  const inputRef= useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    var pinValue;
+    let pinValue;
     if ("caches" in window) {
       caches.match("/pinValue").then((response) => {
         if (response) {
-          response.json().then(result => {
-            console.log(result,"response")
+          response.json().then((result) => {
+            console.log(result, "response");
             if (result.pinValue) {
               pinValue = result.pinValue;
             }
           });
         }
       });
-  
+
       caches.match("/credentials").then((response) => {
         if (response) {
-            console.log(response,"PPPP")
+          console.log(response, "PPPP");
           caches.match("/isLoggedIn").then((response) => {
             if (!response) {
               navigate("/");
-            } 
-            else {
-                 navigate("/otpPin");
-               }
+            } else {
+              navigate("/otpPin");
+            }
           });
-        } 
+        }
       });
     }
   }, []);
 
-  
   const navigate = useNavigate();
- 
-    const inputChangedHandler = (e: React.ChangeEvent<HTMLInputElement>): void => {
-      const value = e.target.value;
-      const newOTP: string[] = [...otp];
 
-      newOTP[currentOTPindex] = value.substring(value.length - 1);
-      if (!value) {
-        setactiveOTPIndex(currentOTPindex - 1)
-      } else {
-        setactiveOTPIndex(currentOTPindex + 1)
-      }
-      // const val= value.substring(value.length-1)   
-      // console.log(val)
-      setOtp(newOTP);
-      //console.log(currentOTPindex, activeOTPIndex)    
-      if(!newOTP[3]){
-        setEnableDoneButton(false)
-      }else{
-        setEnableDoneButton(true)
-      }
-    };    
-    
+  const inputChangedHandler = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    const value = e.target.value;
+    const newOTP: string[] = [...otp];
+
+    newOTP[currentOTPindex] = value.substring(value.length - 1);
+    if (!value) {
+      setactiveOTPIndex(currentOTPindex - 1);
+    } else {
+      setactiveOTPIndex(currentOTPindex + 1);
+    }
+    // const val= value.substring(value.length-1)
+    // console.log(val)
+    setOtp(newOTP);
+    //console.log(currentOTPindex, activeOTPIndex)
+    if (!newOTP[3]) {
+      setEnableDoneButton(false);
+    } else {
+      setEnableDoneButton(true);
+    }
+  };
 
   const setPinClick = (e) => {
-    e.preventDefault()
- 
+    e.preventDefault();
+
     const pinValue = otp[3] + otp[2] + otp[1] + otp[0];
-    console.log(pinValue,"pinValue")
+    console.log(pinValue, "pinValue");
     if ("caches" in window) {
       caches.match("/pinValue").then((response) => {
         if (response) {
           response.json().then(function updateFromCache(result) {
             if (result.pinValue !== pinValue) {
-              console.log("result",result)
+              console.log("result", result);
               toast.error("Please enter valid pin");
-              setTimeout(()=>{
-                setOtp(new Array(4).fill(""))
-              }, 6000)
+              setTimeout(() => {
+                setOtp(new Array(4).fill(""));
+              }, 6000);
               return;
             } else {
               navigate("/calender");
@@ -107,27 +106,34 @@ import { CACHE_DYNAMIC_CONTENT } from "../App";
     }
   };
 
-    const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-      const val = e.key
-      console.log(e.key)
-      currentOTPindex = index
-      if (val === "Backspace") {
-        setactiveOTPIndex(currentOTPindex - 1)
-      }
+  const handleOnKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const val = e.key; // console.log(e.key)
 
-      if (val === "Backspace") {
-        setactiveOTPIndex(currentOTPindex +1)
-      }
+    currentOTPindex = index;
+
+    console.log(index);
+
+    if (val === "Backspace") {
+      setactiveOTPIndex(currentOTPindex - 1);
     }
 
-    useEffect(() => {
-      inputRef.current?.focus()
-    }, [activeOTPIndex])
+    if (e.key == " " || e.keyCode == 32) {
+      setactiveOTPIndex(currentOTPindex + 1);
+    }
+
+    console.log(index, currentOTPindex);
+  };
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [activeOTPIndex]);
 
   return (
     <>
       <body className="app">
-      <ToastContainer />
+        <ToastContainer />
         <section className="login-content">
           <div className="login-content-lt">
             <div className="logo">
@@ -150,22 +156,22 @@ import { CACHE_DYNAMIC_CONTENT } from "../App";
                   We have send the Verification code to your mobile number.
                 </p>
                 <div className="form-group">
-                <label className="control-label">Enter here</label>
-                <div className="otp-block"  >
-                  { otp.map((_, index) => {
-                  return(
-                    <div style={{margin:"8px"}} key={index}>
-                      <input 
-                       className="form-control"
-                       value={otp[index]}
-                       ref={index === activeOTPIndex ? inputRef : null}
-                       onChange={inputChangedHandler}
-                       onKeyDown={(e) => handleOnKeyDown(e, index)}
-                       type="password"
-                     />
-                     </div>
-                  )  
-                  })  }
+                  <label className="control-label">Enter here</label>
+                  <div className="otp-block">
+                    {otp.map((_, index) => {
+                      return (
+                        <div style={{ margin: "8px" }} key={index}>
+                          <input
+                            className="form-control"
+                            value={otp[index]}
+                            ref={index === activeOTPIndex ? inputRef : null}
+                            onChange={inputChangedHandler}
+                            onKeyDown={(e) => handleOnKeyDown(e, index)}
+                            type="password"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                   {/* <!-- <div className="error-block">Error display here</div> --> */}
                 </div>
@@ -173,11 +179,14 @@ import { CACHE_DYNAMIC_CONTENT } from "../App";
                   Didn't receive code? <a href="#">Request again</a>
                 </div> */}
                 <div className="form-group btn-container">
-                  <button className="btn btn-primary"
-                   onClick={setPinClick}
-                   disabled={!enableDoneButton}
-                  //  ref={this.done}
-                  >Submit</button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={setPinClick}
+                    disabled={!enableDoneButton}
+                    //  ref={this.done}
+                  >
+                    Submit
+                  </button>
                 </div>
               </form>
             </div>
@@ -186,6 +195,6 @@ import { CACHE_DYNAMIC_CONTENT } from "../App";
       </body>
     </>
   );
-}
+};
 
 export default OtpPage;

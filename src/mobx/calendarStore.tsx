@@ -31,7 +31,7 @@ export class CalendarCardstore {
       `https://r360-dev-services.rishabhsoft.com/api/lite/MyLogTime`,getDatedata,
       { headers: {"Authorization" : `Bearer ${token}`} }
     ); 
-    console.log(getLogsTime,"getLogsTime");
+   
     this.calenderDateDetails = getLogsTime.data;
   }
 

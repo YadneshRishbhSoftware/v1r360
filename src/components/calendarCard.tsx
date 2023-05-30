@@ -11,20 +11,23 @@ const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
   const navigate = useNavigate();
+  const {
+    rootStore: { calendercardStore, userAddTaskStore, insertLogTime },
+  } = useStore();
   const [selectedDate, setSelactedDate] = useState<any>(new Date());
-  const [projectId, setProjectId] = useState<number | undefined>(0);
+  const [projectId, setProjectId] = useState<number | undefined>();
   const [taskArr, setTaskArr] = useState<any>([]);
   const [taskId, setTaskId] = useState<string>();
-  const [timeHours, setTimehours] = useState<string>();
-  const [timeMinute, setTimeminute] = useState<number | undefined>(0);
+  const [timeHours, setTimehours] = useState<any>({
+    hour: "",
+    minute: "",
+  });
   const [isLeave, setisLeave] = useState<boolean>(false);
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
-  const {
-    rootStore: { calendercardStore, userAddTaskStore, insertLogTime },
-  } = useStore();
-  console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
+
+  // console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
   const getDate = async (e: any) => {
     await calendercardStore.fetchcalenderCardData(
       moment(e.start).format("DD/MMMM/YYYY")
@@ -38,7 +41,7 @@ function CalendarCard() {
     );
   };
   useEffect(() => {
-    console.debug("adhfd");
+    // console.debug("adhfd");
     const tempArr = userAddTaskStore?.getAddTasklist?.filter((item: any) => {
       return item.project_id === Number(projectId);
     });
@@ -52,18 +55,31 @@ function CalendarCard() {
     } else {
       navigate("/");
     }
+    calendercardStore.fetchcalenderCardData(
+      moment(selectedDate).format("DD/MMMM/YYYY")
+    );
+    userAddTaskStore.fetchcalenderCardData(
+      moment(selectedDate).format("DD/MMMM/YYYY")
+    );
   }, [navigate]);
 
-  const setHours = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTimehours(e.target.value);
-  };
+  // const setTime = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   console.log(e.target.value,"time_------>")
+  //   setTimehours(...timeHours, {e.target.value});
+  // };
   const gettaskID = (e) => {
-    setTaskId(e.target.value);
-    if (e.target.value === ("21395" || "18962")) {
+    const name = taskArr.filter((item: any) => {
+      return item.task_id == e.target.value;
+    });
+    if (name[0].task_name === "Leave") {
+      console.log("true");
       setisLeave(true);
     } else {
       setisLeave(false);
     }
+    calendercardStore.fetchcalenderCardData(
+      moment(new Date()).format("DD/MMMM/YYYY")
+    );
   };
   const submitInsertLogTimeForm = () => {
     if (!projectId) {
@@ -72,18 +88,43 @@ function CalendarCard() {
       toast.error("please entert Task Name");
     } else if (!isLeave && !timeHours) {
       toast.error("please enter time");
+    } else if (Number(timeHours.hour) && Number(timeHours.hour) >= 16) {
+      toast.error("Pleas enter hours less than 16");
+    } else if (Number(timeHours.minute) && Number(timeHours.minute) >= 59) {
+      toast.error("Pleas enter minute less than 59");
+    } else if (Number(timeHours.hour) <= -1) {
+      toast.error("Pleasr enter Positive number in hrs");
+    } else if (Number(timeHours.minute) <= -1) {
+      toast.error("Pleasr enter Positive number in min");
     } else if (!descriptionComment) {
       toast.error("please enter description");
-    } else if (timeHours && timeHours >= "16") {
-      toast.error("Pleasr enter hours less than 16");
+    } else {
+      const formattedTime = `${timeHours.hour}:${timeHours.minute}`;
+      insertLogTime?.fetchInsertData(
+        moment(selectedDate).format("DD/MMMM/YYYY"),
+        projectId,
+        taskId,
+        formattedTime,
+        descriptionComment
+      );
     }
+  };
+
+  const editTask = (e, data: any) => {
+    setProjectId(data?.project_id);
+    setTaskId(data?.task_id);
+    setTimehours(data?.total_hours);
+    // setDescriptionComment(data?.descriptionComment);
+    const formattedTime = `${timeHours.hour}:${timeHours.minute}`;
+    if(data?.project_id === projectId && data?.task_id === taskId && data?.total_hours === timeHours  ){
     insertLogTime?.fetchInsertData(
       moment(selectedDate).format("DD/MMMM/YYYY"),
       projectId,
       taskId,
-      timeHours,
+      formattedTime,
       descriptionComment
-    );
+    )
+    }
   };
   return (
     <>
@@ -182,7 +223,7 @@ function CalendarCard() {
                                   Task: {data.task.name}
                                 </div>
                                 <div className="task-spent-time">
-                                  Time: 2 Hrs. 20mins
+                                  Time: {data?.total_hours} hours
                                 </div>
                                 <div className="task-description"></div>
                               </div>
@@ -192,7 +233,7 @@ function CalendarCard() {
                                   data-bs-toggle="modal"
                                   data-bs-target="#exampleModal"
                                 >
-                                  <button className="btn-head">
+                                  <button className="btn-head"   onClick={(e: any) => editTask(e, data)}>
                                     <i className="icon-edit"></i>
                                   </button>
                                   <button className="btn-head">
@@ -273,8 +314,10 @@ function CalendarCard() {
                   <select
                     className="form-control"
                     id="exampleSelect1"
-                    value={userAddTaskStore?.getAddTasklist?.project_id}
-                    onChange={(e: any) => setProjectId(e.target.value)}
+                    value={projectId}
+                    onChange={(e: any) => (
+                      setProjectId(e.target.value), setisLeave(false)
+                    )}
                   >
                     <option>Select Project</option>
                     {userAddTaskStore?.getAddTasklist?.map((option: any) => (
@@ -294,18 +337,14 @@ function CalendarCard() {
                     id="exampleSelect1"
                     onChange={gettaskID}
                     disabled={!projectId ? true : false}
+                    value={taskId}
                   >
                     <option>Select Task</option>
-                    {taskArr?.map(
-                      (option: any) => (
-                        console.log("option", option),
-                        (
-                          <option value={option?.task_id}>
-                            {option?.task_name}
-                          </option>
-                        )
-                      )
-                    )}
+                    {taskArr?.map((option: any) => (
+                      <option value={option?.task_id}>
+                        {option?.task_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 {/* <div className="form-group mb-0">
@@ -347,7 +386,7 @@ function CalendarCard() {
                     </div>
                   </div>
                 </div> */}
-                {isLeave ? (
+                {isLeave === true ? (
                   <div className="form-group custom-radio">
                     <label>Select Leave Type</label>
                     <div className="radio-col">
@@ -356,7 +395,9 @@ function CalendarCard() {
                           type="radio"
                           id="test1"
                           name="radio-group"
-                          checked
+                          checked={timeHours.hour && timeHours.hour > 4}
+                          value={8}
+                          // onChange={(e:any) => setSelectLeave(...selectLeave,[fullDay:e.target.value])}
                         />
                         <label htmlFor="test1" className="mr-0">
                           Full Day
@@ -367,7 +408,8 @@ function CalendarCard() {
                           type="radio"
                           id="test2"
                           name="radio-group"
-                          checked
+                          checked={timeHours.hour && timeHours.hour < 5}
+                          value={4}
                         />
                         <label htmlFor="test2" className="mr-0">
                           Half Day
@@ -390,7 +432,12 @@ function CalendarCard() {
                             step="1"
                             max="16"
                             maxLength={2}
-                            onChange={setHours}
+                            onChange={(e) =>
+                              setTimehours({
+                                ...timeHours,
+                                hour: e.target.value,
+                              })
+                            }
                           />
                         </div>
                       </div>
@@ -405,8 +452,11 @@ function CalendarCard() {
                             // step="1"
                             max={59}
                             maxLength={2}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setTimeminute(Number(e.target.value))
+                            onChange={(e) =>
+                              setTimehours({
+                                ...timeHours,
+                                minute: e.target.value,
+                              })
                             }
                           />
                         </div>
@@ -1073,155 +1123,6 @@ function CalendarCard() {
             </div>
           </div>
         </div>
-
-        {/* <div
-          className="modal fade"
-          id="exampleModal"
-          tabIndex={-1}
-          aria-labelledby="exampleModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="back-btn-block justify-content-between">
-                  <div className="d-flex align-items-center justify-content-start">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      View / Update Time
-                    </h4>
-                  </div>
-                  <div className="d-flex align-items-center justify-content-end">
-                    <button
-                      type="button"
-                      className="close i-close ml-15"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Project</label>
-                  <select className="form-control" id="exampleSelect1">
-                    <option>Select Project</option>
-                    <option>Option 2 </option>
-                    <option>Option 3</option>
-                    <option>Option 4</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Task</label>
-                  <select className="form-control" id="exampleSelect1">
-                    <option>Select Task</option>
-                    <option>Option 2 </option>
-                    <option>Option 3</option>
-                    <option>Option 4</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="control-label">Select Days</label>
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="01-01-2023, 02-01-2023, 03-01-2023......"
-                      id="demoDate"
-                    />
-                    <div className="input-group-append">
-                      <span className="input-group-text bg-transparent" id="">
-                        <i className="icon-calendar"></i>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group mb-0">
-                  <label>Enter Time</label>
-                  <div className="row">
-                    <div className="col-lg-6">
-                      <div className="form-group">
-                        <input
-                          className="form-control"
-                          placeholder="HH"
-                          type="number"
-                          min="0"
-                          step="1"
-                          maxLength={2}
-                          id="hour"
-                          //   onChange={inputhandleChange("hour")}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-lg-6">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="MM"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group custom-radio">
-                  <label>Select Leave Type</label>
-                  <div className="radio-col">
-                    <div className="radio-block">
-                      <input
-                        type="radio"
-                        id="test1"
-                        name="radio-group"
-                        checked
-                      />
-                      <label htmlFor="test1" className="mr-0">
-                        Full Day
-                      </label>
-                    </div>
-                    <div className="radio-block">
-                      <input
-                        type="radio"
-                        id="test2"
-                        name="radio-group"
-                        checked
-                      />
-                      <label htmlFor="test2" className="mr-0">
-                        Half Day
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Your Comments</label>
-                  <textarea className="form-control" id="" rows={5}></textarea>
-                </div>
-                <div className="form-group mb-0 mt-3">
-                  <label className="custom-checkbox mb-0">
-                    <span className="checkbox__title">Remember Me</span>
-                    <input className="checkbox__input" type="checkbox" />
-                    <span className="checkbox__checkmark"></span>
-                  </label>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-primary w-100 m-0" type="submit">
-                  Submit
-                </button>
-              </div>
-            </div>
-          </div>
-        </div> */}
       </body>
     </>
   );
