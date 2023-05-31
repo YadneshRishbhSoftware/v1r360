@@ -24,6 +24,7 @@ function CalendarCard() {
   const [dataObj, setdatObj] = useState<any>({});
   const [isLeave, setisLeave] = useState<boolean>(false);
   const [isEdit, setisEdit] = useState<boolean>(false);
+  const [loading ,setLoading] = useState(false)
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
@@ -42,15 +43,16 @@ function CalendarCard() {
     );
   };
   useEffect(() => {
-    // console.debug("adhfd");
+    console.log("1");
     const tempArr = userAddTaskStore?.getAddTasklist?.filter((item: any) => {
       return item.project_id === Number(projectId);
     });
     setTaskArr(
       Object.values(tempArr?.[0] ? tempArr?.[0].project_task?.[0] : [])
     );
-  }, [projectId, userAddTaskStore?.getAddTasklist]);
+  }, [projectId]);
   useEffect(() => {
+    console.log("2");
     if (localStorage.getItem("token")) {
       navigate("/calender");
     } else {
@@ -62,13 +64,10 @@ function CalendarCard() {
     userAddTaskStore.fetchcalenderCardData(
       moment(selectedDate).format("DD/MMMM/YYYY")
     );
-  }, [calendercardStore, navigate, selectedDate, userAddTaskStore]);
+  }, [ navigate]);
 
-  // const setTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   console.log(e.target.value,"time_------>")
-  //   setTimehours(...timeHours, {e.target.value});
-  // };
   const gettaskID = (e: any) => {
+    console.log("3");
     setTaskId(e.target.value);
     const name = taskArr.filter((item: any) => {
       return item.task_id == e.target.value;
@@ -83,8 +82,15 @@ function CalendarCard() {
       moment(new Date()).format("DD/MMMM/YYYY")
     );
   };
+  function resetForm (){
+    setProjectId("")
+    setTaskId("")
+    setMinute("")
+    setHour("")
+    setDescriptionComment("")
+  }
   const submitInsertLogTimeForm = async () => {
-    console.log("projectid", projectId);
+
     if (!projectId) {
       toast.error("please entert project Name");
     } else if (!taskId) {
@@ -127,26 +133,19 @@ function CalendarCard() {
             hours: formattedTime,
             description: descriptionComment,
           });
-      // console.log("all project",projectId, taskId, formattedTime, descriptionComment, dataObj)
-      // if(isEdit === false) {
-      //   setdatObj( {
-      //     date:moment(selectedDate).format("DD/MMMM/YYYY"),
-      //     project_id:projectId,
-      //     task_id:taskId,
-      //     hours:formattedTime,
-      //     description:descriptionComment
-      // } )
-      // } else {
-      //   setdatObj({date:moment(selectedDate).format("DD/MMMM/YYYY"),
-      //     project_id:projectId,
-      //     task_id:taskId,
-      //     hours:formattedTime,
-      //     description:descriptionComment,
-      //     log_id: logId
-      // })
-      // }
-      console.log("dataObj", temObj);
       await insertLogTime?.fetchInsertData(temObj);
+      if(isEdit){
+        toast.success("Updated SuccesFully")
+        calendercardStore.fetchcalenderCardData(
+          moment(selectedDate).format("DD/MMMM/YYYY")
+        );
+      }else{
+        toast.success("Added SuccesFully")
+        calendercardStore.fetchcalenderCardData(
+          moment(selectedDate).format("DD/MMMM/YYYY")
+        );
+      }
+      resetForm()
     }
   };
 
@@ -159,31 +158,7 @@ function CalendarCard() {
     setMinute(data?.total_hours);
     setDescriptionComment(data?.descriptionComment);
     setLogId(data?.log_id.toString());
-    const formattedTime = `${hour}:${minute}`;
-
-    // setdatObj({
-    //   date:moment(selectedDate).format("DD/MMMM/YYYY"),
-    //   project_id:data?.project_id,
-    //   task_id:data?.task_id,
-    //   hours:formattedTime,
-    //   description:data?.descriptionComment,
-    //   log_id: data?.log_id.toString()
-    // })
-    // if (
-    //   data?.project_id === projectId &&
-    //   data?.task_id === taskId &&
-    //   data?.total_hours === formattedTime  &&
-    //   data?.log_id
-    // ) {
-    //  await insertLogTime?.fetchUpdateData(
-    //     moment(selectedDate).format("DD/MMMM/YYYY"),
-    //     projectId,
-    //     taskId,
-    //     formattedTime,
-    //     descriptionComment,
-    //     data?.log_id.toString()
-    //   );
-    // }
+    // const formattedTime = `${hour}:${minute}`;
   };
   const deleteTask = (data: any) => {
     try {
@@ -191,7 +166,11 @@ function CalendarCard() {
       console.log(calendercardStore?.deleteuserTask, "KKK");
       if (calendercardStore?.deleteuserTask?.status === "Success") {
         toast.success("Task Delete Successfully");
+        calendercardStore.fetchcalenderCardData(
+          moment(selectedDate).format("DD/MMMM/YYYY")
+        );
       }
+
     } catch {
       toast.error("someting went wrong");
     }
@@ -200,7 +179,7 @@ function CalendarCard() {
     <>
       <body className="app">
         <ToastContainer />
-        <main>
+        <main className="loader">
           <header>
             <div className="header">
               <div className="header-nav">
@@ -278,7 +257,7 @@ function CalendarCard() {
                       </li>
                     </ul>
                   </div>
-
+             {/* --------------------- Print List logDetails --------------- */}
                   <div className="booked-meal-wrapper">
                     {calendercardStore?.calenderDateDetails?.logTimes?.map(
                       (data: any, id) => {
@@ -653,298 +632,6 @@ function CalendarCard() {
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
-                  </div>
-                </div>
-                <div className="modal-body mb-4">
-                  <div className="notification-wrapper">
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                    <div className="notification-block">
-                      <h4>Lorem Ipsum which looks reasonable</h4>
-                      <p className="txt-sm">January 25, 2023</p>
-                      <p>
-                        Lorem ipsum is a placeholder text commonly used to
-                        demonstrate visual form of a document.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal left-m fade"
-            id="changePassModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="myModalLabel2"
-          >
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <div className="back-btn-block">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      Change Password
-                    </h4>
-                    <button
-                      type="button"
-                      className="close i-close"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="modal-body">
-                  <div className="change-password-block">
-                    <div className="form-group">
-                      <label>Current Password</label>
-                      <input
-                        className="form-control"
-                        type="password"
-                        placeholder="Enter"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>New Password</label>
-                      <input
-                        className="form-control"
-                        type="password"
-                        placeholder="Enter"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Confirm Password</label>
-                      <input
-                        className="form-control"
-                        type="password"
-                        placeholder="Enter"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-primary w-100"
-                    data-dismiss="modal"
-                  >
-                    Updated Password
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal left-m fade"
-            id="aboutusModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="myModalLabel2"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-lg"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <div className="back-btn-block">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      About us
-                    </h4>
-                    <button
-                      type="button"
-                      className="close i-close"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="modal-body mb-4">
-                  <div className="txt-wrapper">
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal left-m fade"
-            id="TnCModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="myModalLabel2"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-lg"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <div className="back-btn-block">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      Terms & Conditions
-                    </h4>
-                    <button
-                      type="button"
-                      className="close i-close"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="modal-body mb-4">
-                  <div className="txt-wrapper">
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
                   </div>
                 </div>
               </div>
