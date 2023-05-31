@@ -23,7 +23,6 @@ export class UserAddTaskStore {
       `https://r360-dev-services.rishabhsoft.com/api/lite/MyProjects`,getDatedata,
       { headers: {"Authorization" : `Bearer ${token}`} }
     ); 
-    console.log(getTasklist,"getLogsTime");
     this.getAddTasklist = getTasklist?.data
   }
 }

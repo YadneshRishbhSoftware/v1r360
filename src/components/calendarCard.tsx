@@ -15,14 +15,15 @@ function CalendarCard() {
     rootStore: { calendercardStore, userAddTaskStore, insertLogTime },
   } = useStore();
   const [selectedDate, setSelactedDate] = useState<any>(new Date());
-  const [projectId, setProjectId] = useState<number | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>();
   const [taskArr, setTaskArr] = useState<any>([]);
   const [taskId, setTaskId] = useState<string>();
-  const [timeHours, setTimehours] = useState<any>({
-    hour: "",
-    minute: "",
-  });
+  const [logId, setLogId] = useState<string>();
+  const [minute, setMinute] = useState<string>("");
+  const [hour, setHour] = useState<string>("");
+  const [dataObj, setdatObj] = useState<any>({});
   const [isLeave, setisLeave] = useState<boolean>(false);
+  const [isEdit, setisEdit] = useState<boolean>(false);
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
@@ -48,7 +49,7 @@ function CalendarCard() {
     setTaskArr(
       Object.values(tempArr?.[0] ? tempArr?.[0].project_task?.[0] : [])
     );
-  }, [projectId]);
+  }, [projectId, userAddTaskStore?.getAddTasklist]);
   useEffect(() => {
     if (localStorage.getItem("token")) {
       navigate("/calender");
@@ -61,13 +62,14 @@ function CalendarCard() {
     userAddTaskStore.fetchcalenderCardData(
       moment(selectedDate).format("DD/MMMM/YYYY")
     );
-  }, [navigate]);
+  }, [calendercardStore, navigate, selectedDate, userAddTaskStore]);
 
   // const setTime = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   console.log(e.target.value,"time_------>")
   //   setTimehours(...timeHours, {e.target.value});
   // };
-  const gettaskID = (e) => {
+  const gettaskID = (e: any) => {
+    setTaskId(e.target.value);
     const name = taskArr.filter((item: any) => {
       return item.task_id == e.target.value;
     });
@@ -81,49 +83,117 @@ function CalendarCard() {
       moment(new Date()).format("DD/MMMM/YYYY")
     );
   };
-  const submitInsertLogTimeForm = () => {
+  const submitInsertLogTimeForm = async () => {
+    console.log("projectid", projectId);
     if (!projectId) {
       toast.error("please entert project Name");
     } else if (!taskId) {
       toast.error("please entert Task Name");
-    } else if (!isLeave && !timeHours) {
+    } else if (!isLeave && !hour) {
       toast.error("please enter time");
-    } else if (Number(timeHours.hour) && Number(timeHours.hour) >= 16) {
+    } else if (Number(hour) && Number(hour) >= 16) {
       toast.error("Pleas enter hours less than 16");
-    } else if (Number(timeHours.minute) && Number(timeHours.minute) >= 59) {
+    } else if (Number(minute) && Number(minute) >= 59) {
       toast.error("Pleas enter minute less than 59");
-    } else if (Number(timeHours.hour) <= -1) {
+    } else if (Number(hour) <= -1) {
       toast.error("Pleasr enter Positive number in hrs");
-    } else if (Number(timeHours.minute) <= -1) {
+    } else if (Number(minute) <= -1) {
       toast.error("Pleasr enter Positive number in min");
     } else if (!descriptionComment) {
       toast.error("please enter description");
     } else {
-      const formattedTime = `${timeHours.hour}:${timeHours.minute}`;
-      insertLogTime?.fetchInsertData(
-        moment(selectedDate).format("DD/MMMM/YYYY"),
-        projectId,
-        taskId,
-        formattedTime,
-        descriptionComment
-      );
+      const formattedTime = `${hour}:${minute ? minute : "00"}`;
+      // setdatObj({
+      //       date:moment(selectedDate).format("DD/MMMM/YYYY"),
+      //       project_id:projectId,
+      //       task_id:taskId,
+      //       hours:formattedTime,
+      //       description:descriptionComment
+      //   } )
+      var temObj = {};
+      isEdit
+        ? (temObj = {
+            date: moment(selectedDate).format("DD/MMMM/YYYY"),
+            project_id: projectId,
+            task_id: taskId,
+            hours: formattedTime,
+            description: descriptionComment,
+            log_id: logId,
+          })
+        : (temObj = {
+            date: moment(selectedDate).format("DD/MMMM/YYYY"),
+            project_id: projectId,
+            task_id: taskId,
+            hours: formattedTime,
+            description: descriptionComment,
+          });
+      // console.log("all project",projectId, taskId, formattedTime, descriptionComment, dataObj)
+      // if(isEdit === false) {
+      //   setdatObj( {
+      //     date:moment(selectedDate).format("DD/MMMM/YYYY"),
+      //     project_id:projectId,
+      //     task_id:taskId,
+      //     hours:formattedTime,
+      //     description:descriptionComment
+      // } )
+      // } else {
+      //   setdatObj({date:moment(selectedDate).format("DD/MMMM/YYYY"),
+      //     project_id:projectId,
+      //     task_id:taskId,
+      //     hours:formattedTime,
+      //     description:descriptionComment,
+      //     log_id: logId
+      // })
+      // }
+      console.log("dataObj", temObj);
+      await insertLogTime?.fetchInsertData(temObj);
     }
   };
 
-  const editTask = (e, data: any) => {
+  const editTask = async (e, data: any) => {
+    console.log(data, "IIID");
+    setisEdit(true);
     setProjectId(data?.project_id);
     setTaskId(data?.task_id);
-    setTimehours(data?.total_hours);
-    // setDescriptionComment(data?.descriptionComment);
-    const formattedTime = `${timeHours.hour}:${timeHours.minute}`;
-    if(data?.project_id === projectId && data?.task_id === taskId && data?.total_hours === timeHours  ){
-    insertLogTime?.fetchInsertData(
-      moment(selectedDate).format("DD/MMMM/YYYY"),
-      projectId,
-      taskId,
-      formattedTime,
-      descriptionComment
-    )
+    setHour(data?.total_hours);
+    setMinute(data?.total_hours);
+    setDescriptionComment(data?.descriptionComment);
+    setLogId(data?.log_id.toString());
+    const formattedTime = `${hour}:${minute}`;
+
+    // setdatObj({
+    //   date:moment(selectedDate).format("DD/MMMM/YYYY"),
+    //   project_id:data?.project_id,
+    //   task_id:data?.task_id,
+    //   hours:formattedTime,
+    //   description:data?.descriptionComment,
+    //   log_id: data?.log_id.toString()
+    // })
+    // if (
+    //   data?.project_id === projectId &&
+    //   data?.task_id === taskId &&
+    //   data?.total_hours === formattedTime  &&
+    //   data?.log_id
+    // ) {
+    //  await insertLogTime?.fetchUpdateData(
+    //     moment(selectedDate).format("DD/MMMM/YYYY"),
+    //     projectId,
+    //     taskId,
+    //     formattedTime,
+    //     descriptionComment,
+    //     data?.log_id.toString()
+    //   );
+    // }
+  };
+  const deleteTask = (data: any) => {
+    try {
+      calendercardStore.fetchDeletetask(data?.log_id.toString());
+      console.log(calendercardStore?.deleteuserTask, "KKK");
+      if (calendercardStore?.deleteuserTask?.status === "Success") {
+        toast.success("Task Delete Successfully");
+      }
+    } catch {
+      toast.error("someting went wrong");
     }
   };
   return (
@@ -223,23 +293,32 @@ function CalendarCard() {
                                   Task: {data.task.name}
                                 </div>
                                 <div className="task-spent-time">
-                                  Time: {data?.total_hours} hours
+                                  Time: {data?.total_hours} hour{" "}
+                                  {data?.total_hours} min
                                 </div>
                                 <div className="task-description"></div>
                               </div>
                               {data?.editable === true ? (
-                                <div
-                                  className="booked-meal-tp-rt"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#exampleModal"
-                                >
-                                  <button className="btn-head"   onClick={(e: any) => editTask(e, data)}>
-                                    <i className="icon-edit"></i>
-                                  </button>
-                                  <button className="btn-head">
+                                <>
+                                  <div
+                                    className="booked-meal-tp-rt"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal"
+                                  >
+                                    <button
+                                      className="btn-head"
+                                      onClick={(e: any) => editTask(e, data)}
+                                    >
+                                      <i className="icon-edit"></i>
+                                    </button>
+                                  </div>
+                                  <button
+                                    className="btn-head"
+                                    onClick={() => deleteTask(data)}
+                                  >
                                     <i className="icon-trash"></i>
                                   </button>
-                                </div>
+                                </>
                               ) : (
                                 <div className="task-status booked-meal-tp-rt">
                                   <i className="icon-check"></i>
@@ -316,7 +395,9 @@ function CalendarCard() {
                     id="exampleSelect1"
                     value={projectId}
                     onChange={(e: any) => (
-                      setProjectId(e.target.value), setisLeave(false)
+                      console.log("e.target.value", e.target.value),
+                      setProjectId(e.target.value),
+                      setisLeave(false)
                     )}
                   >
                     <option>Select Project</option>
@@ -347,45 +428,6 @@ function CalendarCard() {
                     ))}
                   </select>
                 </div>
-                {/* <div className="form-group mb-0">
-                  <label>Enter Time</label>
-                  <div className="row">
-                    <div className="col-lg-6">
-                      <div className="form-group">
-                        <input
-                          disabled={!projectId ? true : false}
-                          className="form-control"
-                          placeholder="HH"
-                          type="number"
-                          min={0}
-                          step="1"
-                          max={16}
-                          maxLength={2}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setTimehours(Number(e.target.value))
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="col-lg-6">
-                      <div className="form-group">
-                        <input
-                          disabled={!projectId ? true : false}
-                          type="number"
-                          className="form-control"
-                          placeholder="MM"
-                          min={0}
-                          // step="1"
-                          max={59}
-                          maxLength={2}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setTimeminute(Number(e.target.value))
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
                 {isLeave === true ? (
                   <div className="form-group custom-radio">
                     <label>Select Leave Type</label>
@@ -395,7 +437,7 @@ function CalendarCard() {
                           type="radio"
                           id="test1"
                           name="radio-group"
-                          checked={timeHours.hour && timeHours.hour > 4}
+                          // checked={hour && hour > "4"}
                           value={8}
                           // onChange={(e:any) => setSelectLeave(...selectLeave,[fullDay:e.target.value])}
                         />
@@ -408,7 +450,7 @@ function CalendarCard() {
                           type="radio"
                           id="test2"
                           name="radio-group"
-                          checked={timeHours.hour && timeHours.hour < 5}
+                          // checked={hour && hour < 4}
                           value={4}
                         />
                         <label htmlFor="test2" className="mr-0">
@@ -432,12 +474,7 @@ function CalendarCard() {
                             step="1"
                             max="16"
                             maxLength={2}
-                            onChange={(e) =>
-                              setTimehours({
-                                ...timeHours,
-                                hour: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setHour(e.target.value)}
                           />
                         </div>
                       </div>
@@ -452,12 +489,7 @@ function CalendarCard() {
                             // step="1"
                             max={59}
                             maxLength={2}
-                            onChange={(e) =>
-                              setTimehours({
-                                ...timeHours,
-                                minute: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setMinute(e.target.value)}
                           />
                         </div>
                       </div>

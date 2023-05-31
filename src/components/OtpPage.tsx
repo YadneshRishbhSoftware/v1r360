@@ -70,7 +70,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     e.preventDefault();
 
     const pinValue = otp[3] + otp[2] + otp[1] + otp[0];
-    console.log(pinValue, "pinValue");
     if ("caches" in window) {
       caches.match("/pinValue").then((response) => {
         if (response) {
