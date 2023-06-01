@@ -19,12 +19,12 @@ function CalendarCard() {
   const [taskArr, setTaskArr] = useState<any>([]);
   const [taskId, setTaskId] = useState<string>();
   const [logId, setLogId] = useState<string>();
-  const [minute, setMinute] = useState<string>("");
+  const [minute, setMinute] = useState<number>();
   const [hour, setHour] = useState<string>("");
-  const [dataObj, setdatObj] = useState<any>({});
+  // const [dataObj, setdatObj] = useState<any>({});
   const [isLeave, setisLeave] = useState<boolean>(false);
   const [isEdit, setisEdit] = useState<boolean>(false);
-  const [loading ,setLoading] = useState(false)
+  // const [loading ,setLoading] = useState(false)
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
@@ -38,6 +38,7 @@ function CalendarCard() {
   };
 
   const userAddTask = () => {
+    resetForm()
     userAddTaskStore.fetchcalenderCardData(
       moment(selectedDate).format("DD/MMMM/YYYY")
     );
@@ -85,7 +86,7 @@ function CalendarCard() {
   function resetForm (){
     setProjectId("")
     setTaskId("")
-    setMinute("")
+    setMinute(0)
     setHour("")
     setDescriptionComment("")
   }
@@ -95,11 +96,11 @@ function CalendarCard() {
       toast.error("please entert project Name");
     } else if (!taskId) {
       toast.error("please entert Task Name");
-    } else if (!isLeave && !hour) {
-      toast.error("please enter time");
+    } else if (!isLeave &&  (!hour && !minute)) {
+      toast.error("please enter time ");
     } else if (Number(hour) && Number(hour) >= 16) {
       toast.error("Pleas enter hours less than 16");
-    } else if (Number(minute) && Number(minute) >= 59) {
+    } else if (Number(minute) && Number(minute) >= 59 && minute === null) {
       toast.error("Pleas enter minute less than 59");
     } else if (Number(hour) <= -1) {
       toast.error("Pleasr enter Positive number in hrs");
@@ -139,6 +140,7 @@ function CalendarCard() {
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
+        setisEdit(false)
       }else{
         toast.success("Added SuccesFully")
         calendercardStore.fetchcalenderCardData(
@@ -150,25 +152,27 @@ function CalendarCard() {
   };
 
   const editTask = async (e, data: any) => {
-    console.log(data, "IIID");
+    console.log("data?.total_hours?.toString().split('.')[0]",data?.total_hours?.toString().split('.'))
     setisEdit(true);
     setProjectId(data?.project_id);
     setTaskId(data?.task_id);
-    setHour(data?.total_hours);
-    setMinute(data?.total_hours);
+    console.log(hour,minute, "hour")
+    setHour(data?.total_hours?.toString().split('.')[0]);
+    setMinute((data?.total_hours?.toString().split('.')[1])/100*60);
     setDescriptionComment(data?.descriptionComment);
     setLogId(data?.log_id.toString());
     // const formattedTime = `${hour}:${minute}`;
   };
-  const deleteTask = (data: any) => {
+
+  const deleteTask = async (data: any) => {
     try {
-      calendercardStore.fetchDeletetask(data?.log_id.toString());
+      await calendercardStore.fetchDeletetask(data?.log_id.toString());
       console.log(calendercardStore?.deleteuserTask, "KKK");
+      await calendercardStore.fetchcalenderCardData(
+        moment(selectedDate).format("DD/MMMM/YYYY")
+      );
       if (calendercardStore?.deleteuserTask?.status === "Success") {
         toast.success("Task Delete Successfully");
-        calendercardStore.fetchcalenderCardData(
-          moment(selectedDate).format("DD/MMMM/YYYY")
-        );
       }
 
     } catch {
@@ -216,8 +220,8 @@ function CalendarCard() {
           <div className="main-wrapper">
             <div className="main-content">
               <div className="month-status">
-                Leave Hrs: <span>16Hrs.</span> | Actual Hrs: <span>0Hrs.</span>{" "}
-                | Total Hrs: <span>184Hrs.</span>
+                Leave Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.logTimeTotalLeave.toFixed(2)} Hrs. </span> | Actual Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)} Hrs.</span>{" "}
+                | Total Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.total_month_hrs.toFixed(2)} Hrs.</span>
               </div>
               <div className="calendar-wrapper">
                 <div className="calendar-block">
@@ -245,7 +249,7 @@ function CalendarCard() {
                 </div>
                 <div className="booked-meal">
                   <div className="d-date">
-                    <span>Thursday</span> 30th March, 2023
+                    <span> {moment(selectedDate).format("DD MMMM YYYY")}</span> 
                   </div>
                   <div className="info-txt">
                     <ul>
@@ -259,7 +263,7 @@ function CalendarCard() {
                   </div>
              {/* --------------------- Print List logDetails --------------- */}
                   <div className="booked-meal-wrapper">
-                    {calendercardStore?.calenderDateDetails?.logTimes?.map(
+                    {calendercardStore?.calenderDateDetails?.logTimes?.slice().reverse().map(
                       (data: any, id) => {
                         return (
                           <div className="booked-meal-block" key={id}>
@@ -273,7 +277,7 @@ function CalendarCard() {
                                 </div>
                                 <div className="task-spent-time">
                                   Time: {data?.total_hours} hour{" "}
-                                  {data?.total_hours} min
+                                  {/* {data?.total_hours} min */}
                                 </div>
                                 <div className="task-description"></div>
                               </div>
@@ -453,6 +457,7 @@ function CalendarCard() {
                             step="1"
                             max="16"
                             maxLength={2}
+                            value={hour}
                             onChange={(e) => setHour(e.target.value)}
                           />
                         </div>
@@ -467,8 +472,9 @@ function CalendarCard() {
                             min={0}
                             // step="1"
                             max={59}
+                            value={Math.trunc(Number(minute))}
                             maxLength={2}
-                            onChange={(e) => setMinute(e.target.value)}
+                            onChange={(e) => setMinute(Number(e.target.value))}
                           />
                         </div>
                       </div>
@@ -483,6 +489,7 @@ function CalendarCard() {
                     id=""
                     rows={5}
                     onChange={(e) => setDescriptionComment(e.target.value)}
+                    value={descriptionComment}
                   ></textarea>
                 </div>
               </div>
@@ -491,6 +498,7 @@ function CalendarCard() {
                   className="btn btn-primary w-100 m-0"
                   type="submit"
                   onClick={submitInsertLogTimeForm}
+                  data-bs-dismiss="modal"
                 >
                   Submit
                 </button>

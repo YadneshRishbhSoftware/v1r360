@@ -71,19 +71,6 @@ export class LoginStore {
             },
           }
         );
-        // const holidays = Object.values(dataObj["holidays"]);
-        // const holidays_jsonResponse = new Response(
-        //   JSON.stringify(holidays),
-        //   {
-        //     headers: {
-        //       "content-type": "application/json",
-        //     },
-        //   }
-        // );
-
-        // dispatch(setUserData({ ...credentials }));
-        // dispatch(setLoading(false));
-        // dispatch(setHolidays(holidays));
         caches
           .open(CACHE_DYNAMIC_CONTENT)
           .then((cache) => {
@@ -96,9 +83,6 @@ export class LoginStore {
             NotificationManager.error("catches open time error !.!");
           });
       });
-      // }else{
-      //   console.log("ddd")
-      // }
     } catch (e) {
       console.log(e);
     }
