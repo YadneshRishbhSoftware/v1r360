@@ -5,6 +5,8 @@ import Lite from "../assets/images/R-360Lite.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const {
@@ -38,7 +40,11 @@ function Login() {
       if (loginStore?.userDetails?.status === "success") {
         navigate("/otpPin");
       }
-    } else {
+      else if(loginStore?.userDetails?.status === "fail") {
+        toast.error("User is not registered");
+        console.log("error",loginStore?.userDetails?.status)
+      }
+    }else {
       setErrors({
         email: isUsernameValid ? undefined : "Username is required",
         password: isPasswordValid ? undefined : "Password is required",
@@ -49,6 +55,7 @@ function Login() {
   return (
     <>
       <body className="app">
+      <ToastContainer/>
         <section className="login-content">
           <div className="login-content-lt">
             <div className="logo">

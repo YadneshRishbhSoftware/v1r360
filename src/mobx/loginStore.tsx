@@ -59,9 +59,9 @@ export class LoginStore {
         });
 
         credentials = {
-          user: dataObj.user.email,
+          user: dataObj?.user?.email,
           authToken: dataObj.token,
-          name: dataObj.user.name,
+          name: dataObj?.user?.name,
         };
         const credentials_jsonResponse = new Response(
           JSON.stringify(credentials),

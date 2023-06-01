@@ -28,7 +28,7 @@ function CalendarCard() {
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
-
+ console.log("testing")
   // console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
   const getDate = async (e: any) => {
     await calendercardStore.fetchcalenderCardData(
@@ -93,19 +93,19 @@ function CalendarCard() {
   const submitInsertLogTimeForm = async () => {
 
     if (!projectId) {
-      toast.error("please entert project Name");
+      toast.error("Please Enter Troject Name");
     } else if (!taskId) {
-      toast.error("please entert Task Name");
+      toast.error("Please Enter Task Name");
     } else if (!isLeave &&  (!hour && !minute)) {
-      toast.error("please enter time ");
+      toast.error("Please Enter Time ");
     } else if (Number(hour) && Number(hour) >= 16) {
-      toast.error("Pleas enter hours less than 16");
+      toast.error("Please enter hours less than 16");
     } else if (Number(minute) && Number(minute) >= 59 && minute === null) {
-      toast.error("Pleas enter minute less than 59");
+      toast.error("Please enter minute less than 59");
     } else if (Number(hour) <= -1) {
-      toast.error("Pleasr enter Positive number in hrs");
+      toast.error("Please enter positive number in hrs");
     } else if (Number(minute) <= -1) {
-      toast.error("Pleasr enter Positive number in min");
+      toast.error("Please enter Positive number in min");
     } else if (!descriptionComment) {
       toast.error("please enter description");
     } else {
@@ -179,6 +179,23 @@ function CalendarCard() {
       toast.error("someting went wrong");
     }
   };
+
+
+  const DayHours= Number(calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2));
+  const remHours= 480-DayHours*60
+  const dayHours=(calendercardStore?.calenderDateDetails?.month?.logTimeTotal)?.toFixed(2);
+  const decimalIndex =Number(dayHours?.toString().indexOf("."));
+  const decimal =Math.trunc((Number(dayHours?.toString().substring(decimalIndex+1))*60)/100);
+  const decimalPart=('0'+decimal.toString()).slice(-2)
+  const integer= Math.trunc(Number(dayHours));
+  const integerPart=('0'+integer).slice(-2)
+  const totalMin=integer*60+decimal
+  const remTime= 480-totalMin;
+  const remHour=Math.trunc(Number((remTime/60)));
+  const remMin= (remTime%60).toString()
+  const value=('0'+remMin).slice(-2)
+
+
   return (
     <>
       <body className="app">
@@ -249,15 +266,15 @@ function CalendarCard() {
                 </div>
                 <div className="booked-meal">
                   <div className="d-date">
-                    <span> {moment(selectedDate).format("DD MMMM YYYY")}</span> 
+                  <span>{moment(selectedDate).format("dddd")}</span> {moment(selectedDate).format("Do MMMM, YYYY")}
                   </div>
                   <div className="info-txt">
                     <ul>
                       <li>
-                        Hours entered for the day: <span>04:00 hours </span>
+                        Hours entered for the day:  <span>{integerPart}:{decimalPart} hours </span>
                       </li>
                       <li>
-                        Hours remaining: <span>04:00 hours </span>
+                        Hours remaining: {totalMin>=480?<span> 00:00 hours </span>:<span> {remHour}:{value} hours </span>}
                       </li>
                     </ul>
                   </div>
