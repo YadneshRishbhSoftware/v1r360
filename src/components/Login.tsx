@@ -5,6 +5,7 @@ import Lite from "../assets/images/R-360Lite.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
+import { GrClose } from "react-icons/gr";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -95,7 +96,7 @@ function Login() {
                       </div>
                     ) : (
                       <div className="icon-after icon-red">
-                        <i className="icon-check"></i>
+                        <GrClose ></GrClose>
                       </div>
                     )}
                   </div>
