@@ -5,7 +5,8 @@ import Lite from "../assets/images/R-360Lite.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function Login() {
   const {
     rootStore: { loginStore },
@@ -37,6 +38,8 @@ function Login() {
 
       if (loginStore?.userDetails?.status === "success") {
         navigate("/otpPin");
+      } else if(loginStore?.userDetails?.status === "fail") {
+        toast.error(loginStore?.userDetails?.data);
       }
     } else {
       setErrors({
@@ -48,6 +51,7 @@ function Login() {
 
   return (
     <>
+    <ToastContainer autoClose={1500}/>
       <body className="app">
         <section className="login-content">
           <div className="login-content-lt">
