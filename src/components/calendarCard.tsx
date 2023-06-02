@@ -5,8 +5,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
-import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
@@ -20,10 +21,12 @@ function CalendarCard() {
   const [taskId, setTaskId] = useState<string>();
   const [logId, setLogId] = useState<string>();
   const [minute, setMinute] = useState<number>();
-  const [hour, setHour] = useState<string>("");
+  const [hour, setHour] = useState<number>();
+  const [isMinute, setIsMinute] = useState<boolean>(false);
   // const [dataObj, setdatObj] = useState<any>({});
   const [isLeave, setisLeave] = useState<boolean>(false);
   const [isEdit, setisEdit] = useState<boolean>(false);
+  const [isDeleteModal, setIsDeleteModal] = useState<boolean>(false);
   // const [loading ,setLoading] = useState(false)
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
@@ -37,8 +40,9 @@ function CalendarCard() {
     setSelactedDate(e.start);
   };
 
+  console.log("isDeleteModal", isMinute);
   const userAddTask = () => {
-    resetForm()
+    resetForm();
     userAddTaskStore.fetchcalenderCardData(
       moment(selectedDate).format("DD/MMMM/YYYY")
     );
@@ -65,7 +69,7 @@ function CalendarCard() {
     userAddTaskStore.fetchcalenderCardData(
       moment(selectedDate).format("DD/MMMM/YYYY")
     );
-  }, [ navigate]);
+  }, [navigate]);
 
   const gettaskID = (e: any) => {
     console.log("3");
@@ -83,20 +87,21 @@ function CalendarCard() {
       moment(new Date()).format("DD/MMMM/YYYY")
     );
   };
-  function resetForm (){
-    setProjectId("")
-    setTaskId("")
-    setMinute(0)
-    setHour("")
-    setDescriptionComment("")
+  function resetForm() {
+    setProjectId("");
+    setTaskId("");
+    setMinute(0);
+    setHour(0);
+    setDescriptionComment("");
+    setisLeave(false);
   }
   const submitInsertLogTimeForm = async () => {
-
+    console.log("hours", hour, minute);
     if (!projectId) {
       toast.error("please entert project Name");
     } else if (!taskId) {
       toast.error("please entert Task Name");
-    } else if (!isLeave &&  (!hour && !minute)) {
+    } else if (!isLeave && !hour && !minute) {
       toast.error("please enter time ");
     } else if (Number(hour) && Number(hour) >= 16) {
       toast.error("Pleas enter hours less than 16");
@@ -110,13 +115,7 @@ function CalendarCard() {
       toast.error("please enter description");
     } else {
       const formattedTime = `${hour}:${minute ? minute : "00"}`;
-      // setdatObj({
-      //       date:moment(selectedDate).format("DD/MMMM/YYYY"),
-      //       project_id:projectId,
-      //       task_id:taskId,
-      //       hours:formattedTime,
-      //       description:descriptionComment
-      //   } )
+      console.log("formattedTime", formattedTime);
       var temObj = {};
       isEdit
         ? (temObj = {
@@ -135,66 +134,78 @@ function CalendarCard() {
             description: descriptionComment,
           });
       await insertLogTime?.fetchInsertData(temObj);
-      if(isEdit){
-        toast.success("Updated SuccesFully")
+      if (isEdit) {
+        toast.success("Task Updated successfully");
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
-        setisEdit(false)
-      }else{
-        toast.success("Added SuccesFully")
+        setisEdit(false);
+      } else {
+        toast.success("Task Added successfully");
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
       }
-      resetForm()
+      resetForm();
     }
   };
 
   const editTask = async (e, data: any) => {
-    console.log("data?.total_hours?.toString().split('.')[0]",data?.total_hours?.toString().split('.'))
+    console.log(
+      "data?.total_hours?.toString().split('.')[0]",
+      data?.total_hours?.toString().split(".")
+    );
     setisEdit(true);
     setProjectId(data?.project_id);
     setTaskId(data?.task_id);
-    console.log(hour,minute, "hour")
-    setHour(data?.total_hours?.toString().split('.')[0]);
-    setMinute((data?.total_hours?.toString().split('.')[1])/100*60);
+    setHour(data?.total_hours?.toString().split(".")[0]);
+    setMinute((data?.total_hours?.toString().split(".")[1] / 100) * 60);
     setDescriptionComment(data?.descriptionComment);
     setLogId(data?.log_id.toString());
     // const formattedTime = `${hour}:${minute}`;
   };
 
-  const deleteTask = async (data: any) => {
-    try {
-      await calendercardStore.fetchDeletetask(data?.log_id.toString());
-      console.log(calendercardStore?.deleteuserTask, "KKK");
+  const deleteTask = async () => {
+    await calendercardStore.fetchDeletetask(logId);
+    if (calendercardStore?.deleteuserTask?.status == "Success") {
+      toast.success("Task Delete Successfully");
       await calendercardStore.fetchcalenderCardData(
         moment(selectedDate).format("DD/MMMM/YYYY")
       );
-      if (calendercardStore?.deleteuserTask?.status === "Success") {
-        toast.success("Task Delete Successfully");
-      }
-
-    } catch {
-      toast.error("someting went wrong");
     }
   };
+  const DayHours = Number(
+    calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)
+  );
+
+  // const remHours = 480 - DayHours * 60;
+
+  const dayHours = calendercardStore?.calenderDateDetails?.month?.logTimeTotal?.toFixed(2);
+  const decimalIndex = Number(dayHours?.toString().indexOf("."));
+  const decimal = Math.trunc(
+    (Number(dayHours?.toString().substring(decimalIndex + 1)) * 60) / 100
+  );
+  const decimalPart = ("0" + decimal.toString()).slice(-2);
+  const integer = Math.trunc(Number(dayHours));
+  const integerPart = ("0" + integer).slice(-2);
+  const totalMin = integer * 60 + decimal;
+  const remTime = 480 - totalMin;
+  const remHour = Math.trunc(Number(remTime / 60));
+  const remMin = (remTime % 60).toString();
+  const value = ("0" + remMin).slice(-2);
   return (
     <>
       <body className="app">
-        <ToastContainer />
+        <ToastContainer autoClose={1500}/>
         <main className="loader">
           <header>
             <div className="header">
               <div className="header-nav">
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   aria-label="Settings"
                   className="btn-head"
-                  data-toggle="modal"
-                  data-target="#navModal"
-                  onClick={() => localStorage.clear()}
+                  // onClick={() => localStorage.clear()}
                 >
                   <i className="icon-setting"></i>
                 </a>
@@ -220,8 +231,27 @@ function CalendarCard() {
           <div className="main-wrapper">
             <div className="main-content">
               <div className="month-status">
-                Leave Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.logTimeTotalLeave.toFixed(2)} Hrs. </span> | Actual Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)} Hrs.</span>{" "}
-                | Total Hrs: <span>{calendercardStore?.calenderDateDetails?.month?.total_month_hrs.toFixed(2)} Hrs.</span>
+                Leave Hrs:{" "}
+                <span>
+                  {calendercardStore?.calenderDateDetails?.month?.logTimeTotalLeave.toFixed(
+                    2
+                  )}{" "}
+                  Hrs.{" "}
+                </span>{" "}
+                | Actual Hrs:{" "}
+                <span>
+                  {calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(
+                    2
+                  )}{" "}
+                  Hrs.
+                </span>{" "}
+                | Total Hrs:{" "}
+                <span>
+                  {calendercardStore?.calenderDateDetails?.month?.total_month_hrs.toFixed(
+                    2
+                  )}{" "}
+                  Hrs.
+                </span>
               </div>
               <div className="calendar-wrapper">
                 <div className="calendar-block">
@@ -249,22 +279,35 @@ function CalendarCard() {
                 </div>
                 <div className="booked-meal">
                   <div className="d-date">
-                    <span> {moment(selectedDate).format("DD MMMM YYYY")}</span> 
+                    <span> {moment(selectedDate).format("DD MMMM YYYY")}</span>
                   </div>
                   <div className="info-txt">
                     <ul>
                       <li>
-                        Hours entered for the day: <span>04:00 hours </span>
+                        Hours entered for the day:{" "}
+                        <span>
+                          {integerPart}:{decimalPart} hours{" "}
+                        </span>
                       </li>
                       <li>
-                        Hours remaining: <span>04:00 hours </span>
+                        Hours remaining:{" "}
+                        {totalMin >= 480 ? (
+                          <span> 00:00 hours </span>
+                        ) : (
+                          <span>
+                            {" "}
+                            {remHour}:{value} hours{" "}
+                          </span>
+                        )}
                       </li>
                     </ul>
                   </div>
-             {/* --------------------- Print List logDetails --------------- */}
+                  {/* --------------------- Print List logDetails --------------- */}
                   <div className="booked-meal-wrapper">
-                    {calendercardStore?.calenderDateDetails?.logTimes?.slice().reverse().map(
-                      (data: any, id) => {
+                    {calendercardStore?.calenderDateDetails?.logTimes
+                      ?.slice()
+                      .reverse()
+                      .map((data: any, id) => {
                         return (
                           <div className="booked-meal-block" key={id}>
                             <div className="booked-meal-tp">
@@ -276,8 +319,19 @@ function CalendarCard() {
                                   Task: {data.task.name}
                                 </div>
                                 <div className="task-spent-time">
-                                  Time: {data?.total_hours} hour{" "}
-                                  {/* {data?.total_hours} min */}
+                                  Time:{" "}
+                                  {data?.total_hours?.toString().split(".")[0]}{" "}
+                                  hour{" "}
+                                  {data?.total_hours?.toString().split(".")[1]
+                                    ? (
+                                        (data?.total_hours
+                                          ?.toString()
+                                          .split(".")[1] /
+                                          100) *
+                                        60
+                                      ).toFixed()
+                                    : 0}{" "}
+                                  mins
                                 </div>
                                 <div className="task-description"></div>
                               </div>
@@ -297,7 +351,12 @@ function CalendarCard() {
                                   </div>
                                   <button
                                     className="btn-head"
-                                    onClick={() => deleteTask(data)}
+                                    onClick={() => (
+                                      setIsDeleteModal(true),
+                                      setLogId(data?.log_id)
+                                    )}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
                                   >
                                     <i className="icon-trash"></i>
                                   </button>
@@ -310,8 +369,7 @@ function CalendarCard() {
                             </div>
                           </div>
                         );
-                      }
-                    )}
+                      })}
                   </div>
                 </div>
               </div>
@@ -329,7 +387,7 @@ function CalendarCard() {
             </div>
           </div>
         </main>
-        {/* <!-- Start Book meal Modal --> */}
+        {/* <!-- Add Task --> */}
 
         <div
           className="modal fade"
@@ -362,7 +420,7 @@ function CalendarCard() {
                     <button
                       type="button"
                       className="close i-close ml-15"
-                      data-dismiss="modal"
+                      data-bs-dismiss="modal"
                       aria-label="Close"
                     >
                       <span aria-hidden="true">&times;</span>
@@ -422,7 +480,7 @@ function CalendarCard() {
                           name="radio-group"
                           // checked={hour && hour > "4"}
                           value={8}
-                          // onChange={(e:any) => setSelectLeave(...selectLeave,[fullDay:e.target.value])}
+                          onChange={() => setHour(8)}
                         />
                         <label htmlFor="test1" className="mr-0">
                           Full Day
@@ -435,6 +493,7 @@ function CalendarCard() {
                           name="radio-group"
                           // checked={hour && hour < 4}
                           value={4}
+                          onChange={() => setHour(4)}
                         />
                         <label htmlFor="test2" className="mr-0">
                           Half Day
@@ -458,7 +517,15 @@ function CalendarCard() {
                             max="16"
                             maxLength={2}
                             value={hour}
-                            onChange={(e) => setHour(e.target.value)}
+                            onChange={(e) =>
+                              setHour(
+                                Number(
+                                  Number(e.target.value) >= 16
+                                    ? 0
+                                    : e.target.value
+                                )
+                              )
+                            }
                           />
                         </div>
                       </div>
@@ -470,17 +537,26 @@ function CalendarCard() {
                             className="form-control"
                             placeholder="MM"
                             min={0}
-                            // step="1"
                             max={59}
                             value={Math.trunc(Number(minute))}
                             maxLength={2}
-                            onChange={(e) => setMinute(Number(e.target.value))}
+                            onChange={(e) =>
+                              setMinute(
+                                Number(
+                                  Number(e.target.value) >= 59
+                                    ? setIsMinute(true)
+                                    : (e.target.value)
+                                )
+                              )
+                            }
                           />
                         </div>
                       </div>
+                      {isMinute ? <p style={{color:"red"}}>please enter valid value</p> : ""}
                     </div>
                   </div>
                 )}
+
                 <div className="form-group">
                   <label>Your Comments</label>
                   <textarea
@@ -506,346 +582,69 @@ function CalendarCard() {
             </div>
           </div>
         </div>
+        {/* delete modal */}
+        {/* {isDeleteModal ? 
+        <div id="custom-modal-container">
+          <div id="custom-modal">
+            <span id="custom-modal-message"></span>
+            <div>
+              <button id="custom-modal-button-positive"></button>
+              <button id="custom-modal-button-negative"></button>
+            </div>
+          </div>
+        </div> :""} */}
 
         <div
-          className="modal left fade"
-          id="navModal"
+          className="modal fade"
+          id="deleteModal"
           tabIndex={-1}
           role="dialog"
-          aria-labelledby="myModalLabel2"
+          aria-labelledby="deleteModalLabel"
+          aria-hidden="true"
         >
-          <div className="modal-dialog" role="document">
+          <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <div className="d-flex align-items-center justify-content-start">
-                  <button
-                    type="button"
-                    className="close"
-                    data-dismiss="modal"
+                <h5 className="modal-title" id="exampleModalLabel">
+                  Confirm Delete
+                </h5>
+                <button
+                  type="button"
+                  className="close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span
+                    aria-hidden="true"
+                    data-bs-dismiss="modal"
                     aria-label="Close"
                   >
-                    <span aria-hidden="true">
-                      <i className="icon-prev"></i>
-                    </span>
-                  </button>
-                </div>
+                    &times;
+                  </span>
+                </button>
               </div>
               <div className="modal-body">
-                <h3 className="bold mb-0">Robert Ronald</h3>
-                <p className="emp-id">2810</p>
-                <div className="nav-block">
-                  <h6>General</h6>
-                  <a href="#" className="nav-col">
-                    <i className="nav-icon icon-settting2 setting"></i>
-                    <span className="nav-label">Settings</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                  <a
-                    href="#"
-                    className="nav-col"
-                    data-toggle="modal"
-                    data-target="#notificationModal"
-                    data-dismiss="modal"
-                  >
-                    <i className="nav-icon icon-notification notification"></i>
-                    <span className="nav-label">Notifications</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                  <a
-                    href="#"
-                    className="nav-col"
-                    data-toggle="modal"
-                    data-target="#changePassModal"
-                    data-dismiss="modal"
-                  >
-                    <i className="nav-icon icon-lock2 change-pass"></i>
-                    <span className="nav-label">Change Password</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                </div>
-                <div className="nav-block">
-                  <h6>Personal</h6>
-                  <a
-                    href="#"
-                    className="nav-col"
-                    data-toggle="modal"
-                    data-target="#aboutusModal"
-                    data-dismiss="modal"
-                  >
-                    <i className="nav-icon icon-user2 aboutus"></i>
-                    <span className="nav-label">About Us</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                  <a
-                    href="#"
-                    className="nav-col"
-                    data-toggle="modal"
-                    data-target="#TnCModal"
-                    data-dismiss="modal"
-                  >
-                    <i className="nav-icon icon-document tnc"></i>
-                    <span className="nav-label">Terms & Conditions</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                  <a
-                    href="#"
-                    className="nav-col"
-                    data-toggle="modal"
-                    data-target="#privacyPolicyModal"
-                    data-dismiss="modal"
-                  >
-                    <i className="nav-icon icon-document privacy-policy"></i>
-                    <span className="nav-label">privacy-policy</span>
-                    <i className="rt-icon icon-next"></i>
-                  </a>
-                </div>
-                <div className="logout-block">
-                  <a href="#">Logout</a>
-                </div>
+                <p>Are you sure you want to delete?</p>
               </div>
-            </div>
-          </div>
-          <div
-            className="modal left-m fade"
-            id="notificationModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="myModalLabel2"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-lg"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <div className="back-btn-block">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      Notifications
-                    </h4>
-                    <button
-                      type="button"
-                      className="close i-close"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal left-m fade"
-            id="privacyPolicyModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="myModalLabel2"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-lg"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <div className="back-btn-block">
-                    <button
-                      type="button"
-                      className="close i-prev"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">
-                        <i className="icon-prev"></i>
-                      </span>
-                    </button>
-                    <h4 className="modal-title" id="myModalLabel2">
-                      Privacy Policy
-                    </h4>
-                    <button
-                      type="button"
-                      className="close i-close"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    >
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="modal-body mb-4">
-                  <div className="txt-wrapper">
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                    <p>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                      sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                      magna aliquyam erat, sed diam voluptua. At vero eos et
-                      accusam et justo duo dolores et ea rebum. Stet clita kasd
-                      gubergren, no sea takimata sanctus est Lorem ipsum dolor
-                      sit amet. Lorem ipsum dolor sit amet, consetetur
-                      sadipscing elitr, sed diam nonumy eirmod tempor invidunt
-                      ut labore et dolore magna aliquyam erat, sed diam
-                      voluptua. At vero eos et accusam et justo duo dolores et
-                      ea rebum. Stet clita kasd gubergren, no sea takimata
-                      sanctus est Lorem ipsum dolor sit amet.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal fade"
-            id="scanCodeModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered code-wrapper modal-md"
-              role="document"
-            >
-              <div className="modal-content code-wrapper">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="exampleModalLabel">
-                    Scan Code
-                  </h5>
-                  <button
-                    type="button"
-                    className="close"
-                    data-dismiss="modal"
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body text-center">
-                  <div className="code-block">
-                    <div className="code-img">
-                      <img src="images/code.svg" alt="" />
-                    </div>
-                    <p>Is this whom you mean?</p>
-                    <h3>Robert Ronald</h3>
-                    <h4>2810</h4>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary btn-lg borRad-19"
-                    data-dismiss="modal"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-lg borRad-19"
-                  >
-                    Yes
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal fade"
-            id="redeemedModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-sm status-modal"
-              role="document"
-            >
-              <div className="modal-content status-modal">
-                <div className="modal-header">
-                  <button
-                    type="button"
-                    className="close"
-                    data-dismiss="modal"
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <div className="coupon-status">
-                    <img
-                      src="images/successfully.svg"
-                      alt="Booked Successfully"
-                    />
-                    <h5>Coupon Redeemed Successfully</h5>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="modal fade"
-            id="notRedeemedModal"
-            tabIndex={-1}
-            role="dialog"
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div
-              className="modal-dialog modal-dialog-centered modal-sm status-modal"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <button
-                    type="button"
-                    className="close"
-                    data-dismiss="modal"
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <div className="coupon-status">
-                    <img src="images/not-booked.svg" alt="Not Booked" />
-                    <h5>Meal is Not Booked</h5>
-                  </div>
-                </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  id="close-modal"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  onClick={deleteTask}
+                >
+                  Confirm
+                </button>
               </div>
             </div>
           </div>

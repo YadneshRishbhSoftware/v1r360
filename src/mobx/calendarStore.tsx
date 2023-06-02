@@ -37,7 +37,8 @@ export class CalendarCardstore {
     this.calenderDateDetails = getLogsTime.data;
   }
 
-  async fetchDeletetask(logId: string) {
+  async fetchDeletetask(logId: string | undefined) {
+    console.log("logId",logId)
     const getlogId = {
       log_id: logId,
     };

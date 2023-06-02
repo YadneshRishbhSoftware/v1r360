@@ -7,6 +7,8 @@ import ForgotPassword from './components/forgotPassword';
 import OtpPage from './components/OtpPage';
 export const CACHE_STATIC_CONTENT = 'static-v0';
 export const CACHE_DYNAMIC_CONTENT = 'dynamic-v0';
+
+
 function App() {
   // const [lendingComponent, setLendingComponent] = useState('');
   const navigate = useNavigate()
