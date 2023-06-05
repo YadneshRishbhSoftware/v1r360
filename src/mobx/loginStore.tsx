@@ -84,7 +84,6 @@ export class LoginStore {
           });
       });
     } catch (e) {
-      console.log(e);
     }
   }
 

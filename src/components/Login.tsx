@@ -11,7 +11,6 @@ function Login() {
   const {
     rootStore: { loginStore },
   } = useStore();
-  console.log(loginStore?.userDetails?.status, "PPP");
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +25,6 @@ function Login() {
   };
   var regEx = /^[\w-\.]+@(rishabhsoft.com)$/;
   const loginHandle = async (e: { preventDefault: () => void }) => {
-    console.log("!!!");
     e.preventDefault();
 
     const isUsernameValid = email.trim().length > 0 && regEx;
@@ -51,8 +49,8 @@ function Login() {
 
   return (
     <>
-    <ToastContainer autoClose={1500}/>
       <body className="app">
+      <ToastContainer autoClose={1500}/>
         <section className="login-content">
           <div className="login-content-lt">
             <div className="logo">

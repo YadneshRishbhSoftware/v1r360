@@ -20,13 +20,11 @@ export class InsertlogTime {
     data: any
   ) {
     const token: any = localStorage.getItem("token");
-    console.log("data",data)
     const getLogsTime = await axios.post(
       `https://r360-dev-services.rishabhsoft.com/api/lite/InsertLogTime`,
       data,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    console.log(data, "getdata");
     this.userInsertLogtime = getLogsTime.data;
   }
 }

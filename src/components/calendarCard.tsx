@@ -40,7 +40,7 @@ function CalendarCard() {
     setSelactedDate(e.start);
   };
 
-  console.log("isDeleteModal", isMinute);
+
   const userAddTask = () => {
     resetForm();
     userAddTaskStore.fetchcalenderCardData(
@@ -48,16 +48,15 @@ function CalendarCard() {
     );
   };
   useEffect(() => {
-    console.log("1");
     const tempArr = userAddTaskStore?.getAddTasklist?.filter((item: any) => {
       return item.project_id === Number(projectId);
     });
     setTaskArr(
       Object.values(tempArr?.[0] ? tempArr?.[0].project_task?.[0] : [])
     );
+    setIsMinute(false)
   }, [projectId]);
   useEffect(() => {
-    console.log("2");
     if (localStorage.getItem("token")) {
       navigate("/calender");
     } else {
@@ -72,13 +71,11 @@ function CalendarCard() {
   }, [navigate]);
 
   const gettaskID = (e: any) => {
-    console.log("3");
     setTaskId(e.target.value);
     const name = taskArr.filter((item: any) => {
       return item.task_id == e.target.value;
     });
     if (name[0].task_name === "Leave") {
-      console.log("true");
       setisLeave(true);
     } else {
       setisLeave(false);
@@ -96,7 +93,6 @@ function CalendarCard() {
     setisLeave(false);
   }
   const submitInsertLogTimeForm = async () => {
-    console.log("hours", hour, minute);
     if (!projectId) {
       toast.error("please entert project Name");
     } else if (!taskId) {
@@ -115,7 +111,6 @@ function CalendarCard() {
       toast.error("please enter description");
     } else {
       const formattedTime = `${hour}:${minute ? minute : "00"}`;
-      console.log("formattedTime", formattedTime);
       var temObj = {};
       isEdit
         ? (temObj = {
@@ -151,10 +146,6 @@ function CalendarCard() {
   };
 
   const editTask = async (e, data: any) => {
-    console.log(
-      "data?.total_hours?.toString().split('.')[0]",
-      data?.total_hours?.toString().split(".")
-    );
     setisEdit(true);
     setProjectId(data?.project_id);
     setTaskId(data?.task_id);
@@ -174,9 +165,9 @@ function CalendarCard() {
       );
     }
   };
-  const DayHours = Number(
-    calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)
-  );
+  // const DayHours = Number(
+  //   calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)
+  // );
 
   // const remHours = 480 - DayHours * 60;
 
@@ -266,7 +257,7 @@ function CalendarCard() {
                           localizer={localizer}
                           views={["month"]}
                           onSelectSlot={getDate}
-
+                          style={{ height: 400   }}
                           //    events={myEventsList}
                           //    startAccessor="start"
                           //    endAccessor="end"
@@ -286,7 +277,7 @@ function CalendarCard() {
                       <li>
                         Hours entered for the day:{" "}
                         <span>
-                          {integerPart}:{decimalPart} hours{" "}
+                          {integerPart}:{decimalPart} hours{" "}  
                         </span>
                       </li>
                       <li>
@@ -317,6 +308,9 @@ function CalendarCard() {
                                 </div>
                                 <div className="task-info">
                                   Task: {data.task.name}
+                                </div>
+                                <div className="task-info">
+                                  Task: {data?.description}
                                 </div>
                                 <div className="task-spent-time">
                                   Time:{" "}
@@ -436,7 +430,6 @@ function CalendarCard() {
                     id="exampleSelect1"
                     value={projectId}
                     onChange={(e: any) => (
-                      console.log("e.target.value", e.target.value),
                       setProjectId(e.target.value),
                       setisLeave(false)
                     )}

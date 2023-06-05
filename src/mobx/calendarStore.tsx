@@ -38,7 +38,6 @@ export class CalendarCardstore {
   }
 
   async fetchDeletetask(logId: string | undefined) {
-    console.log("logId",logId)
     const getlogId = {
       log_id: logId,
     };
@@ -48,7 +47,6 @@ export class CalendarCardstore {
       getlogId,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    console.log(deleteTask, "deleteTask--");
     this.deleteuserTask = deleteTask.data;
   }
   get getCalendercarddetails() {
