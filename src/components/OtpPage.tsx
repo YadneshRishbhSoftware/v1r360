@@ -18,7 +18,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
       caches.match("/pinValue").then((response) => {
         if (response) {
           response.json().then((result) => {
-            console.log(result, "response");
             if (result.pinValue) {
               pinValue = result.pinValue;
             }
@@ -28,7 +27,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
 
       caches.match("/credentials").then((response) => {
         if (response) {
-          console.log(response, "PPPP");
           caches.match("/isLoggedIn").then((response) => {
             if (!response) {
               navigate("/");
@@ -75,7 +73,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
         if (response) {
           response.json().then(function updateFromCache(result) {
             if (result.pinValue !== pinValue) {
-              console.log("result", result);
               toast.error("Please enter valid pin");
               setTimeout(() => {
                 setOtp(new Array(4).fill(""));
@@ -112,9 +109,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     const val = e.key; // console.log(e.key)
 
     currentOTPindex = index;
-
-    console.log(index);
-
     if (val === "Backspace") {
       setactiveOTPIndex(currentOTPindex - 1);
     }
@@ -122,8 +116,6 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     if (e.key == " " || e.keyCode == 32) {
       setactiveOTPIndex(currentOTPindex + 1);
     }
-
-    console.log(index, currentOTPindex);
   };
   useEffect(() => {
     inputRef.current?.focus();

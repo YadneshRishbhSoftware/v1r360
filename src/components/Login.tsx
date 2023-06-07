@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../assets/images/logo.svg";
 import logo_sm from "../assets/images/logo-sm.svg";
 import Lite from "../assets/images/R-360Lite.svg";
@@ -7,6 +7,7 @@ import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Loader from "./Loader";
 function Login() {
   const {
     rootStore: { loginStore },
@@ -15,6 +16,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isToggled, setToggled] = useState(false);
+  const [isLoader, setIsLoader] = useState(true);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -46,10 +48,15 @@ function Login() {
       });
     }
   };
-
+    setTimeout(()=> {
+      setIsLoader(false)
+    },3000)
+ 
   return (
     <>
       <body className="app">
+        {isLoader ? <Loader /> : 
+        <>
       <ToastContainer autoClose={1500}/>
         <section className="login-content">
           <div className="login-content-lt">
@@ -146,6 +153,8 @@ function Login() {
             </div>
           </div>
         </section>
+        </>
+}
       </body>
     </>
   );

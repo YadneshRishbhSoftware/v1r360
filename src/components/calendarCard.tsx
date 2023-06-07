@@ -7,7 +7,7 @@ import { useStore } from "../Hooks/useStore";
 import { observer } from "mobx-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import "../assets/css/style.css";
 const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
@@ -23,17 +23,20 @@ function CalendarCard() {
   const [minute, setMinute] = useState<number>();
   const [hour, setHour] = useState<number>();
   const [isMinute, setIsMinute] = useState<boolean>(false);
-  // const [dataObj, setdatObj] = useState<any>({});
   const [isLeave, setisLeave] = useState<boolean>(false);
   const [isEdit, setisEdit] = useState<boolean>(false);
-  const [isDeleteModal, setIsDeleteModal] = useState<boolean>(false);
+  const [errorHandlehour ,setErrorHour] = useState("")
+  const [errorHandleminute ,setErrorhandleminute] = useState("")
   // const [loading ,setLoading] = useState(false)
   const [descriptionComment, setDescriptionComment] = useState<
     string | undefined
   >("");
 
   // console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
+
+  // console.log(userAddTaskStore?.getAddTasklist?.Project_task, "leave--->");
   const getDate = async (e: any) => {
+
     await calendercardStore.fetchcalenderCardData(
       moment(e.start).format("DD/MMMM/YYYY")
     );
@@ -54,7 +57,6 @@ function CalendarCard() {
     setTaskArr(
       Object.values(tempArr?.[0] ? tempArr?.[0].project_task?.[0] : [])
     );
-    setIsMinute(false)
   }, [projectId]);
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -99,18 +101,20 @@ function CalendarCard() {
       toast.error("please entert Task Name");
     } else if (!isLeave && !hour && !minute) {
       toast.error("please enter time ");
-    } else if (Number(hour) && Number(hour) >= 16) {
-      toast.error("Pleas enter hours less than 16");
-    } else if (Number(minute) && Number(minute) >= 59 && minute === null) {
-      toast.error("Pleas enter minute less than 59");
-    } else if (Number(hour) <= -1) {
-      toast.error("Pleasr enter Positive number in hrs");
-    } else if (Number(minute) <= -1) {
-      toast.error("Pleasr enter Positive number in min");
     } else if (!descriptionComment) {
       toast.error("please enter description");
     } else {
-      const formattedTime = `${hour}:${minute ? minute : "00"}`;
+      var formattedTime;
+      if (
+        calendercardStore?.calenderDateDetails?.day?.total_day_hours === 8.5 &&
+        isLeave
+      ) {
+        
+        formattedTime = hour?.toString().replace(".",":");
+        console.log(formattedTime,"hour")
+      } else {
+        formattedTime = `${hour}:${minute ? minute : "00"}`;
+      }
       var temObj = {};
       isEdit
         ? (temObj = {
@@ -144,16 +148,39 @@ function CalendarCard() {
       resetForm();
     }
   };
+ 
+  const handleHour = (e) =>{
+    if(e.target.value>=16){
+      setMinute(0)
+    }
+    setHour( Number(Number(e.target.value) > 16 ? 0 : e.target.value ))
+    if( e.target.value>16){
+      setErrorHour("Maximum value of hour should be 16")
+    }else{
+      setErrorHour("")
+    }
+  }
 
+  const handleMinute = (e) =>{
+    setMinute( Number(Number(e.target.value) >59 ? 0 : e.target.value ))
+    if( e.target.value>59){
+      setErrorhandleminute("Maximum value of minute should be 59")
+    }else{
+      setErrorhandleminute("")
+    }
+  }
   const editTask = async (e, data: any) => {
     setisEdit(true);
     setProjectId(data?.project_id);
     setTaskId(data?.task_id);
-    setHour(data?.total_hours?.toString().split(".")[0]);
-    setMinute((data?.total_hours?.toString().split(".")[1] / 100) * 60);
-    setDescriptionComment(data?.descriptionComment);
+    setHour(data?.total_hours?.toString().split(":")[0]);
+    setMinute(
+      data?.total_hours?.toString().split(":")[1]
+        ? (data?.total_hours?.toString().split(":")[1]) 
+        : 0
+    );
+    setDescriptionComment(data?.description);
     setLogId(data?.log_id.toString());
-    // const formattedTime = `${hour}:${minute}`;
   };
 
   const deleteTask = async () => {
@@ -165,29 +192,21 @@ function CalendarCard() {
       );
     }
   };
-  // const DayHours = Number(
-  //   calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(2)
-  // );
-
-  // const remHours = 480 - DayHours * 60;
-
-  const dayHours = calendercardStore?.calenderDateDetails?.month?.logTimeTotal?.toFixed(2);
-  const decimalIndex = Number(dayHours?.toString().indexOf("."));
-  const decimal = Math.trunc(
-    (Number(dayHours?.toString().substring(decimalIndex + 1)) * 60) / 100
-  );
+ 
+  const dayHours = calendercardStore?.calenderDateDetails?.day?.logTimeTotalDay;
+  const decimalIndex = Number((dayHours?.toString()?.indexOf(':')));
+  const decimal =(Number(dayHours?.toString()?.substring(decimalIndex + 1)))
   const decimalPart = ("0" + decimal.toString()).slice(-2);
-  const integer = Math.trunc(Number(dayHours));
-  const integerPart = ("0" + integer).slice(-2);
-  const totalMin = integer * 60 + decimal;
-  const remTime = 480 - totalMin;
+  const integerPart=Number(dayHours?.toString().substring(0,decimalIndex))
+  const totalMin = integerPart * 60 + Number(decimalPart);
+  const remTime = (calendercardStore?.calenderDateDetails?.day?.total_day_hours===8.5) ? (990- totalMin):(960- totalMin);
   const remHour = Math.trunc(Number(remTime / 60));
   const remMin = (remTime % 60).toString();
   const value = ("0" + remMin).slice(-2);
   return (
     <>
       <body className="app">
-        <ToastContainer autoClose={1500}/>
+        <ToastContainer autoClose={1500} />
         <main className="loader">
           <header>
             <div className="header">
@@ -196,7 +215,7 @@ function CalendarCard() {
                   href="#"
                   aria-label="Settings"
                   className="btn-head"
-                  // onClick={() => localStorage.clear()}
+                  onClick={() => localStorage.clear()}
                 >
                   <i className="icon-setting"></i>
                 </a>
@@ -218,7 +237,7 @@ function CalendarCard() {
               </div>
             </div>
           </header>
-
+          {/* <Sidebar open={open}/> */}
           <div className="main-wrapper">
             <div className="main-content">
               <div className="month-status">
@@ -231,16 +250,12 @@ function CalendarCard() {
                 </span>{" "}
                 | Actual Hrs:{" "}
                 <span>
-                  {calendercardStore?.calenderDateDetails?.month?.logTimeTotal.toFixed(
-                    2
-                  )}{" "}
+                  {calendercardStore?.calenderDateDetails?.month?.logTimeTotal}{" "}
                   Hrs.
                 </span>{" "}
                 | Total Hrs:{" "}
                 <span>
-                  {calendercardStore?.calenderDateDetails?.month?.total_month_hrs.toFixed(
-                    2
-                  )}{" "}
+                  {calendercardStore?.calenderDateDetails?.month?.total_month_hrs}{" "}
                   Hrs.
                 </span>
               </div>
@@ -250,14 +265,13 @@ function CalendarCard() {
                     <form action="#">
                       <div
                         id="inline_cal"
-                        style={{ height: "70vh", cursor: "pointer" }}
+                        style={{ height: "auto", cursor: "pointer" }}
                       >
                         <Calendar
                           selectable
                           localizer={localizer}
                           views={["month"]}
                           onSelectSlot={getDate}
-                          style={{ height: 400   }}
                           //    events={myEventsList}
                           //    startAccessor="start"
                           //    endAccessor="end"
@@ -266,7 +280,6 @@ function CalendarCard() {
                       </div>
                     </form>
                   </div>
-                  {/* <button className="btn btn-primary d-btn" data-toggle="modal" data-target="#bookMealModal">Quick Book a Meal</button>  */}
                 </div>
                 <div className="booked-meal">
                   <div className="d-date">
@@ -275,20 +288,18 @@ function CalendarCard() {
                   <div className="info-txt">
                     <ul>
                       <li>
-                        Hours entered for the day:{" "}
-                        <span>
-                          {integerPart}:{decimalPart} hours{" "}  
-                        </span>
+                      <span>  Hours entered for the day: </span>{" "}
+                      <span> {calendercardStore?.calenderDateDetails?.day?.logTimeTotalDay?.toString().split(":")[0]}{" "}
+                           hour{" "}</span>
+                           <span>     {calendercardStore?.calenderDateDetails?.day?.logTimeTotalDay?.toString().split(":")[1]}{" "}
+                           mins</span>
                       </li>
                       <li>
-                        Hours remaining:{" "}
-                        {totalMin >= 480 ? (
+                      <span>Hours remaining: </span>{" "}
+                        {totalMin >= 960 ? (
                           <span> 00:00 hours </span>
                         ) : (
-                          <span>
-                            {" "}
-                            {remHour}:{value} hours{" "}
-                          </span>
+                          <span> {remHour}:{value} hours{" "} </span>
                         )}
                       </li>
                     </ul>
@@ -310,21 +321,13 @@ function CalendarCard() {
                                   Task: {data.task.name}
                                 </div>
                                 <div className="task-info">
-                                  Task: {data?.description}
+                                  Description: {data?.description}
                                 </div>
                                 <div className="task-spent-time">
                                   Time:{" "}
-                                  {data?.total_hours?.toString().split(".")[0]}{" "}
+                                  {data?.total_hours?.toString().split(":")[0]}{" "}
                                   hour{" "}
-                                  {data?.total_hours?.toString().split(".")[1]
-                                    ? (
-                                        (data?.total_hours
-                                          ?.toString()
-                                          .split(".")[1] /
-                                          100) *
-                                        60
-                                      ).toFixed()
-                                    : 0}{" "}
+                                  {data?.total_hours?.toString().split(":")[1]}{" "}
                                   mins
                                 </div>
                                 <div className="task-description"></div>
@@ -345,10 +348,7 @@ function CalendarCard() {
                                   </div>
                                   <button
                                     className="btn-head"
-                                    onClick={() => (
-                                      setIsDeleteModal(true),
-                                      setLogId(data?.log_id)
-                                    )}
+                                    onClick={() => setLogId(data?.log_id)}
                                     data-bs-toggle="modal"
                                     data-bs-target="#deleteModal"
                                   >
@@ -370,7 +370,7 @@ function CalendarCard() {
               <div className="m-btn">
                 <button
                   type="button"
-                  className="btn btn-primary m-auto"
+                  className="btn btn-primary m-auto btn-bt"
                   data-bs-toggle="modal"
                   data-bs-target="#exampleModal"
                   onClick={userAddTask}
@@ -391,13 +391,13 @@ function CalendarCard() {
           aria-labelledby="myModalLabel2"
         >
           <div
-            className="modal-dialog modal-dialog-centered"
+            className="modal-dialog modal-dialog-centered lite-modal"
             tabIndex={-1}
             role="document"
           >
             <div className="modal-content">
               <div className="modal-header">
-                <div className="back-btn-block justify-content-between">
+                <div className="back-btn-block justify-content-between w-100">
                   <div className="d-flex align-items-center justify-content-start">
                     {/* <button
                       type="button"
@@ -430,8 +430,7 @@ function CalendarCard() {
                     id="exampleSelect1"
                     value={projectId}
                     onChange={(e: any) => (
-                      setProjectId(e.target.value),
-                      setisLeave(false)
+                      setProjectId(e.target.value), setisLeave(false)
                     )}
                   >
                     <option>Select Project</option>
@@ -473,7 +472,12 @@ function CalendarCard() {
                           name="radio-group"
                           // checked={hour && hour > "4"}
                           value={8}
-                          onChange={() => setHour(8)}
+                          onChange={() =>
+                            calendercardStore?.calenderDateDetails?.day
+                              ?.total_day_hours === 8.5
+                              ? setHour(8.5)
+                              : setHour(8)
+                          }
                         />
                         <label htmlFor="test1" className="mr-0">
                           Full Day
@@ -486,7 +490,12 @@ function CalendarCard() {
                           name="radio-group"
                           // checked={hour && hour < 4}
                           value={4}
-                          onChange={() => setHour(4)}
+                          onChange={() =>
+                            calendercardStore?.calenderDateDetails?.day
+                              ?.total_day_hours === 8.5
+                              ? setHour(4.5)
+                              : setHour(4)
+                          }
                         />
                         <label htmlFor="test2" className="mr-0">
                           Half Day
@@ -510,22 +519,15 @@ function CalendarCard() {
                             max="16"
                             maxLength={2}
                             value={hour}
-                            onChange={(e) =>
-                              setHour(
-                                Number(
-                                  Number(e.target.value) >= 16
-                                    ? 0
-                                    : e.target.value
-                                )
-                              )
-                            }
+                            onChange={handleHour}
                           />
+                              <span style={{color:"red"}}>{errorHandlehour}</span>
                         </div>
                       </div>
                       <div className="col-lg-6">
                         <div className="form-group">
                           <input
-                            disabled={!projectId ? true : false}
+                            disabled={(!projectId || (hour && hour>=16))? true : false}
                             type="number"
                             className="form-control"
                             placeholder="MM"
@@ -533,19 +535,12 @@ function CalendarCard() {
                             max={59}
                             value={Math.trunc(Number(minute))}
                             maxLength={2}
-                            onChange={(e) =>
-                              setMinute(
-                                Number(
-                                  Number(e.target.value) >= 59
-                                    ? setIsMinute(true)
-                                    : (e.target.value)
-                                )
-                              )
-                            }
+                            onChange={handleMinute}
                           />
+                          <span style={{color:"red"}}>{errorHandleminute}</span>
                         </div>
                       </div>
-                      {isMinute ? <p style={{color:"red"}}>please enter valid value</p> : ""}
+                      
                     </div>
                   </div>
                 )}
@@ -595,7 +590,7 @@ function CalendarCard() {
           aria-labelledby="deleteModalLabel"
           aria-hidden="true"
         >
-          <div className="modal-dialog">
+          <div className="modal-dialog lite-modal">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title" id="exampleModalLabel">

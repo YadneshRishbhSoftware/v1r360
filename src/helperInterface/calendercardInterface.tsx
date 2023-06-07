@@ -1,6 +1,7 @@
 export interface Root {
   logTimes: LogTime[]
   month: Month
+  day  : Day
 }
 
 export interface LogTime {
@@ -27,4 +28,8 @@ export interface Month {
   logTimeTotal: number
   total_month_hrs: number
   logTimeTotalLeave: number
+}
+export interface Day {
+  logTimeTotalDay : number
+  total_day_hours : number
 }
