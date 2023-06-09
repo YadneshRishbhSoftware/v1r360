@@ -19,6 +19,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: -30px;
 }
 
 .lite-modal .modal-header button.close {
@@ -64,11 +65,16 @@
 }
 
 .d-calendar .rbc-date-cell.rbc-off-range .rbc-button-link {
-    color: #ccc
+    color: #292929;
 }
 
 .d-calendar .rbc-off-range {
     color: #292929;
+}
+
+.d-calendar .rbc-date-cell.rbc-now, .d-calendar .rbc-date-cell.rbc-now .rbc-button-link {
+    color: #fff;
+    background-color: #E23E3F;
 }
 
 .d-calendar .rbc-day-bg+.rbc-day-bg {
@@ -115,6 +121,10 @@
     -moz-border-radius: 50%;
     -ms-border-radius: 50%;
     -o-border-radius: 50%;
+    position: relative;
+}
+d-calendar .rbc-date-cell :active{
+    background: #E23E3F;
 }
 
 @media (max-width:1060px) {
@@ -133,6 +143,30 @@
         max-width: 45px;
         max-height: 45px;
     }
+}
+
+.d-calendar .rbc-date-cell:hover, .d-calendar .rbc-date-cell:focus, .d-calendar .rbc-date-cell:active, .d-calendar .rbc-date-cell.active {
+    background-color: #E23E3F;
+}
+
+.d-calendar .rbc-date-cell:hover .rbc-button-link, .d-calendar .rbc-date-cell:focus .rbc-button-link, .d-calendar .rbc-date-cell:active .rbc-button-link, .d-calendar .rbc-date-cell.active .rbc-button-link {
+    color: #fff;
+}
+
+
+
+
+.d-calendar .rbc-button-link {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    color: #292929;
+    font-weight: 500;
 }
 
 .d-calendar .rbc-toolbar .rbc-toolbar-label {
@@ -144,44 +178,15 @@
     font-weight: 600;
 }
 
-.d-calendar .rbc-button-link {
-    color: inherit;
-    background: none;
-    margin: 0;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    -webkit-user-select: text;
-    user-select: text;
-    /* width: 70px;
-    height: 70px;
-    max-width: 70px;
-    max-height: 70px; */
-}
-
-@media (max-width:1060px) {
-    .d-calendar .rbc-button-link {
-        width: 55px;
-        height: 55px;
-        max-width: 55px;
-        max-height: 55px;
-    }
-}
-
-@media (max-width:850px) {
-    .d-calendar .rbc-button-link {
-        width: 45px;
-        height: 45px;
-        max-width: 45px;
-        max-height: 45px;
-    }
-}
-
-.d-calendar .rbc-current {
+/* .d-calendar .rbc-current {
     background-color: #E23E3F;
     border-radius: 50%;
     color: #fff !important;
 }
+
+.d-calendar .rbc-current .rbc-button-link {
+    color: #fff;
+} */
 
 .d-calendar .rbc-day-bg {
     flex: initial;

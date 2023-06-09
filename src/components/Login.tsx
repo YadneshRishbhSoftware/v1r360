@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import logo from "../assets/images/logo.svg";
 import logo_sm from "../assets/images/logo-sm.svg";
 import Lite from "../assets/images/R-360Lite.svg";

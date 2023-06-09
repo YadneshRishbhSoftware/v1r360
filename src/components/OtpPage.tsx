@@ -3,6 +3,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { CACHE_DYNAMIC_CONTENT } from "../App";
+import logo from "../assets/images/logo.svg";
+import logo_sm from "../assets/images/logo-sm.svg";
+import Lite from "../assets/images/R-360Lite.svg";
 
 interface Props {}
 let currentOTPindex: number = 0;
@@ -53,10 +56,7 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     } else {
       setactiveOTPIndex(currentOTPindex + 1);
     }
-    // const val= value.substring(value.length-1)
-    // console.log(val)
     setOtp(newOTP);
-    //console.log(currentOTPindex, activeOTPIndex)
     if (!newOTP[3]) {
       setEnableDoneButton(false);
     } else {
@@ -106,7 +106,7 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
   ) => {
-    const val = e.key; // console.log(e.key)
+    const val = e.key; 
 
     currentOTPindex = index;
     if (val === "Backspace") {
@@ -128,20 +128,16 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
         <section className="login-content">
           <div className="login-content-lt">
             <div className="logo">
-              <img src="images/logo.svg" alt="Rishabh Software" />
+              <img src={logo} alt="Rishabh Software" />
             </div>
             <div className="logo-sm">
-              <img src="images/logo-sm.svg" alt="Rishabh Software" />
+              <img src={logo_sm} alt="Rishabh Software" />
             </div>
           </div>
           <div className="login-content-rt">
             <div className="login-box">
               <form className="login-form" action="#">
-                <img
-                  src="images/R-360Lite.svg"
-                  alt="R-360 Lite"
-                  className="r360-logo"
-                />
+                <img src={Lite} alt="R-360 Lite" className="r360-logo" />
                 <h3 className="login-head">OTP</h3>
                 <p className="login-text">
                   We have send the Verification code to your mobile number.
