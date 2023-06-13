@@ -8,7 +8,9 @@ interface Props {
 
 const Privateroute = ({children ,redirect = "/"} : Props) => {
     const token = localStorage.getItem("token")
-    if(!token) {
+    console.log("private")
+    if (!token) {
+        console.log("no token");
         return <Navigate to={redirect} />;
     }
   return children ? children : <Outlet />;

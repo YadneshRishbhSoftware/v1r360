@@ -138,12 +138,9 @@ function CalendarCard() {
             description: descriptionComment,
           });
       await insertLogTime?.fetchInsertData(temObj);
-      if (
-        calendercardStore?.calenderDateDetails?.day?.total_day_leave_hours ===
-          "4:5" ||
-        "8:5"
-      ) {
-        toast.success("You Apply For Leave");
+      if (isLeave) {
+        toast.success("You apply for Leave");
+
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
@@ -154,7 +151,7 @@ function CalendarCard() {
         );
         setisEdit(false);
       } else {
-        toast.success("Task Added successfully");
+         toast.success("Task Add successfully");
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
