@@ -46,6 +46,7 @@ export class LoginStore {
     try {
       var dataObj = tokenRes.data.data;
       localStorage.setItem("token", dataObj?.token);
+      localStorage.setItem("userName", tokenRes?.data?.data?.user?.name);
       const isLoggedIn = {
         isLoggedIn: true,
       };
@@ -83,8 +84,7 @@ export class LoginStore {
             NotificationManager.error("catches open time error !.!");
           });
       });
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   get getUserDetails() {

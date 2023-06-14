@@ -9,7 +9,7 @@ import Lite from "../assets/images/R-360Lite.svg";
 
 interface Props {}
 let currentOTPindex: number = 0;
-const OtpPage: FC<Props> = (props): JSX.Element => {
+const OtpPage = () => {
   const [otp, setOtp] = useState<string[]>(new Array(4).fill(""));
 
   const [activeOTPIndex, setactiveOTPIndex] = useState<number>(0);
@@ -106,7 +106,7 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
   ) => {
-    const val = e.key; 
+    const val = e.key;
 
     currentOTPindex = index;
     if (val === "Backspace") {
@@ -124,7 +124,7 @@ const OtpPage: FC<Props> = (props): JSX.Element => {
   return (
     <>
       <body className="app">
-        <ToastContainer />
+        <ToastContainer autoClose={1500} />
         <section className="login-content">
           <div className="login-content-lt">
             <div className="logo">

@@ -13,13 +13,13 @@ import Loader from "./Loader";
 const localizer = momentLocalizer(moment);
 
 function CalendarCard() {
+  const userName = localStorage.getItem("userName");
   const navigate = useNavigate();
   const {
     rootStore: {
       calendercardStore,
       userAddTaskStore,
       insertLogTime,
-      loginStore,
     },
   } = useStore();
   const [selectedDate, setSelactedDate] = useState<any>(new Date());
@@ -61,11 +61,6 @@ function CalendarCard() {
     );
   }, [projectId]);
   useEffect(() => {
-    if (localStorage.getItem("token")) {
-      navigate("/calender");
-    } else {
-      navigate("/");
-    }
     setTimeout(() => {
       setLoader(false);
     }, 3000);
@@ -151,7 +146,7 @@ function CalendarCard() {
         );
         setisEdit(false);
       } else {
-         toast.success("Task Add successfully");
+        toast.success("Task Add successfully");
         calendercardStore.fetchcalenderCardData(
           moment(selectedDate).format("DD/MMMM/YYYY")
         );
@@ -256,9 +251,7 @@ function CalendarCard() {
                   <div className="header-info-block">
                     <div className="header-info">
                       <h3>Hello,</h3>
-                      <h3 className="mb-2">
-                        {loginStore?.userDetails?.data?.user?.name}
-                      </h3>
+                      <h3 className="mb-2">{userName}</h3>
                       <p>Add your hours</p>
                     </div>
                     <div className="info-btn">
@@ -311,6 +304,10 @@ function CalendarCard() {
                             localizer={localizer}
                             views={["month"]}
                             onSelectSlot={getDate}
+                            events={[
+                              { title: "event 1", date: "2023-05-07" },
+                              { title: "event 2", date: "2021-05-17" },
+                            ]}
                             //    events={myEventsList}
                             //    startAccessor="start"
                             //    endAccessor="end"
@@ -439,7 +436,7 @@ function CalendarCard() {
                       onClick={userAddTask}
                       disabled={
                         calendercardStore?.calenderDateDetails?.day
-                          ?.total_day_leave_hours === "8:5"
+                          ?.total_day_leave_hours === "8:30"
                           ? true
                           : false
                       }
